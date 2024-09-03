@@ -1,0 +1,19 @@
+The Process
+
+1. click a piece
+2. piece follows mouse location
+3. clicks again on a square
+4. piece snaps to the square (quaternions/lerp)
+
+
+classes:
+
+chessPiece interface:
+Vector2 curLoc;
+bool clicked;
+
+void FollowPointer();
+void onClick();
+bool ValidateMove(Vector2 newLoc);
+
+
