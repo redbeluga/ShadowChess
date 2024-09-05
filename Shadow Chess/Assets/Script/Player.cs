@@ -32,21 +32,14 @@ public class Player : NetworkBehaviour
   [ServerRpc(RequireOwnership = false)]
   private void ServerAddPlayerToBoard(GameObject gameObject)
   {
-    ClientAddPlayerToBoard(gameObject);
-  }
-
-  [ObserversRpc]
-  private void ClientAddPlayerToBoard(GameObject gameObject)
-  {
-    // Find the board on the client
-    board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
-
-    if (board != null)
+    // ClientAddPlayerToBoard(gameObject);
+    if (board == null)
     {
-      // Ensure the player is recognized on the board for all clients
-      board.AddPlayer(gameObject);
+      board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
     }
+    board.AddPlayer(gameObject);
   }
+
   [ObserversRpc]
   public void SetWhite(bool b, GameObject p)
   {
@@ -88,7 +81,7 @@ public class Player : NetworkBehaviour
     {
       if (holdingPiece) // drop piece
       {
-        MovePiece(mousePosition);
+        LocalMovePiece(mousePosition);
       }
       else // get piece
       {
@@ -108,45 +101,50 @@ public class Player : NetworkBehaviour
     }
   }
   [ObserversRpc]
-  public void AddChessPiece(GameObject newChessPiece, Vector2Int loc)
+  public void AddChessPiece(GameObject newChessPiece)
   {
     if (IsOwner)
     {
       chessPieces.Add(newChessPiece);
       newChessPiece.GetComponent<ChessPiece>().Player = gameObject;
-      board.filledBoard[loc.x, loc.y] = newChessPiece;
-      newChessPiece.GetComponent<ChessPiece>().CurLoc = loc;
-      newChessPiece.GetComponent<ChessPiece>().onCreate();
     }
   }
 
-  public void MovePiece(Vector2 mousePosition)
+  public void LocalMovePiece(Vector2 mousePosition){
+    ServerInitiateMovePiece(mousePosition, activeChessPieceScript, white);
+    activeChessPieceScript.GetComponentInChildren<SpriteRenderer>().sortingOrder = 1;
+    holdingPiece = false;
+    activeChessPieceScript = null;
+  }
+
+  [ServerRpc (RequireOwnership = false)]
+  public void ServerInitiateMovePiece(Vector2 mousePosition, ChessPiece activeChessPieceScript, bool white)
   {
     Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
 
     int moveValidation;
-    if(clickedSquare == new Vector2Int(-1, -1) || !IsMyMove()) moveValidation = -1;
+    if (clickedSquare == new Vector2Int(-1, -1) || !IsMyMove(white)) moveValidation = -1;
     else moveValidation = activeChessPieceScript.ValidateMove(clickedSquare);
-    
+
     if (moveValidation == -1) // doesn't work
     {
       board.ServerMovePiece(activeChessPieceScript, activeChessPieceScript.CurLoc);
     }
     else if (moveValidation == 1) // works
     {
+      activeChessPieceScript.MovedCount++;
       board.ServerMovePiece(activeChessPieceScript, clickedSquare);
       board.ServerChangeMove();
     }
     else
     { // handle take piece
-      board.ServerMovePiece(activeChessPieceScript, activeChessPieceScript.CurLoc);
+      board.TakePiece(clickedSquare);
+      board.ServerMovePiece(activeChessPieceScript, clickedSquare);
+      board.ServerChangeMove();
     }
-    activeChessPieceScript.GetComponentInChildren<SpriteRenderer>().sortingOrder = 1;
-    holdingPiece = false;
-    activeChessPieceScript = null;
   }
-
-  private bool IsMyMove(){
+  private bool IsMyMove(bool white)
+  {
     return board.WhiteMove == white;
   }
 }

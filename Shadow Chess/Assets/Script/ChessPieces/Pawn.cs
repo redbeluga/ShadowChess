@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using FishNet.Object;
-using JetBrains.Annotations;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Pawn : ChessPiece
@@ -15,7 +11,7 @@ public class Pawn : ChessPiece
   }
   public override void onCreate()
   {
-    if (Player.GetComponent<Player>().White)
+    if (isWhite)
     {
       validDirection = 1;
     }
@@ -28,17 +24,15 @@ public class Pawn : ChessPiece
   {
     if (MathF.Sign(CurLoc.y - newLoc.y) != validDirection) return -1;
 
-    if (newLoc.x == CurLoc.x)
-    { // move forwards
-      if (
-        (Math.Abs(newLoc.y - CurLoc.y) == 1 || Math.Abs(newLoc.y - CurLoc.y) == 2) &&
-        Player.GetComponent<Player>().Board.EmptySpotOnBoard(new Vector2Int(newLoc.x, newLoc.y))
-      )
-      { // checkfirst move
+    if (newLoc.x == CurLoc.x && Player.GetComponent<Player>().Board.EmptySpotOnBoard(newLoc))
+    {
+      if(Math.Abs(newLoc.y - CurLoc.y) == 1){
         return 1;
       }
-      else
-      {
+      else if(Math.Abs(newLoc.y - CurLoc.y) == 2 && MovedCount == 0 && Player.GetComponent<Player>().Board.EmptySpotOnBoard(new Vector2Int(CurLoc.x, CurLoc.y - validDirection))){
+        return 1;
+      }
+      else{
         return -1;
       }
     }

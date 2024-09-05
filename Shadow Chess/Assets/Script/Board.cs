@@ -12,7 +12,7 @@ public class Board : NetworkBehaviour
   private float length, gridLength;
   private Vector3[,] gridCenterLocation = new Vector3[8, 8];
   public GameObject[,] filledBoard = new GameObject[8, 8];
-  public List<GameObject> whitePieces, blackPieces;
+  public List<GameObject> activeWhitePieces, activeBlackPieces, inActiveWhitePieces, inActiveBlackPieces;
 
   public bool WhiteMove { get => whiteMove; set => whiteMove = value; }
 
@@ -38,11 +38,6 @@ public class Board : NetworkBehaviour
         gridCenterLocation[i, j] = new Vector3(topLeft.x + (i + 0.5f) * gridLength, topLeft.y - (j + 0.5f) * gridLength, spriteBounds.center.x);
       }
     }
-  }
-
-  public override void OnStartServer()
-  {
-    base.OnStartServer();
   }
   public void Spawn32Pieces()
   {
@@ -72,7 +67,6 @@ public class Board : NetworkBehaviour
     ServerCreateChessPiece(blackQueen, new Vector2Int(3, 0));
     ServerCreateChessPiece(blackKing, new Vector2Int(4, 0));
   }
-
   public bool EmptySpotOnBoard(Vector2Int loc)
   {
     return filledBoard[loc.x, loc.y] == null;
@@ -106,15 +100,22 @@ public class Board : NetworkBehaviour
   {
     GameObject newChessPiece = Instantiate(chessPiece, gridCenterLocation[loc.x, loc.y], Quaternion.identity);
     ServerManager.Spawn(newChessPiece);
+
+    filledBoard[loc.x, loc.y] = newChessPiece;
+    newChessPiece.GetComponent<ChessPiece>().CurLoc = loc;
+    newChessPiece.GetComponent<ChessPiece>().onCreate();
+
     if (newChessPiece.GetComponent<ChessPiece>().IsWhite)
     {
-      whitePieces.Add(newChessPiece);
-      players[0].GetComponent<Player>().AddChessPiece(newChessPiece, loc);
+      activeWhitePieces.Add(newChessPiece);
+      newChessPiece.GetComponent<ChessPiece>().Player = players[0];
+      players[0].GetComponent<Player>().AddChessPiece(newChessPiece);
     }
     else
     {
-      blackPieces.Add(newChessPiece);
-      players[1].GetComponent<Player>().AddChessPiece(newChessPiece, loc);
+      activeBlackPieces.Add(newChessPiece);
+      newChessPiece.GetComponent<ChessPiece>().Player = players[1];
+      players[1].GetComponent<Player>().AddChessPiece(newChessPiece);
     }
   }
 
@@ -181,23 +182,40 @@ public class Board : NetworkBehaviour
   public void ServerMovePiece(ChessPiece activeChessPiece, Vector2Int gridLoc)
   {
     // Debug.Log(gridLoc);
-    ClientMovePiece(activeChessPiece, gridLoc);
-  }
-  [ObserversRpc]
-  public void ClientMovePiece(ChessPiece activeChessPiece, Vector2Int gridLoc)
-  {
     Vector2 loc = CenterOfSquare(gridLoc);
     filledBoard[activeChessPiece.CurLoc.x, activeChessPiece.CurLoc.y] = null;
-    filledBoard[gridLoc.x, gridLoc.y] = gameObject;
+    filledBoard[gridLoc.x, gridLoc.y] = activeChessPiece.gameObject;
     activeChessPiece.CurLoc = gridLoc;
-    activeChessPiece.transform.position = loc;
-  }
-  [ServerRpc (RequireOwnership = false)]
-  public void ServerChangeMove(){
-    ClientChangeMove();
+    ClientMovePiece(activeChessPiece, gridLoc, loc);
   }
   [ObserversRpc]
-  public void ClientChangeMove(){
+  public void ClientMovePiece(ChessPiece activeChessPiece, Vector2Int gridLoc, Vector2 loc)
+  {
+    activeChessPiece.transform.position = loc;
+  }
+  [ServerRpc(RequireOwnership = false)]
+  public void ServerChangeMove()
+  {
     whiteMove = !whiteMove;
+  }
+  [ServerRpc(RequireOwnership = false)]
+  public void TakePiece(Vector2Int locToTake){
+    GameObject takenChessPiece = filledBoard[locToTake.x, locToTake.y];
+    if(takenChessPiece.GetComponent<ChessPiece>().IsWhite){
+      // Debug.Log("REmove");
+      activeWhitePieces.Remove(takenChessPiece);
+      inActiveWhitePieces.Add(takenChessPiece);
+    }
+    else{
+      // Debug.Log("REmove");
+      activeBlackPieces.Remove(takenChessPiece);
+      inActiveBlackPieces.Add(takenChessPiece);
+    }
+    takenChessPiece.GetComponent<ChessPiece>().onDisable();
+    LocalDisablePiece(takenChessPiece);
+  }
+  [ObserversRpc]
+  public void LocalDisablePiece(GameObject disabledChessPiece){
+    disabledChessPiece.SetActive(false);
   }
 }
