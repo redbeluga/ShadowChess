@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using FishNet.Object;
+using Unity.Collections;
 public class Player : NetworkBehaviour
 {
   [SerializeField] private GameObject boardObject;
@@ -110,14 +111,15 @@ public class Player : NetworkBehaviour
     }
   }
 
-  public void LocalMovePiece(Vector2 mousePosition){
+  public void LocalMovePiece(Vector2 mousePosition)
+  {
     ServerInitiateMovePiece(mousePosition, activeChessPieceScript, white);
     activeChessPieceScript.GetComponentInChildren<SpriteRenderer>().sortingOrder = 1;
     holdingPiece = false;
     activeChessPieceScript = null;
   }
 
-  [ServerRpc (RequireOwnership = false)]
+  [ServerRpc(RequireOwnership = false)]
   public void ServerInitiateMovePiece(Vector2 mousePosition, ChessPiece activeChessPieceScript, bool white)
   {
     Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
@@ -136,7 +138,13 @@ public class Player : NetworkBehaviour
       board.ServerMovePiece(activeChessPieceScript, clickedSquare);
       board.ServerChangeMove();
     }
-    else
+    else if (moveValidation == -2)
+    { // en passant
+      board.TakePiece(new Vector2Int(clickedSquare.x, activeChessPieceScript.CurLoc.y));
+      board.ServerMovePiece(activeChessPieceScript, clickedSquare);
+      board.ServerChangeMove();
+    }
+    else // take piece
     { // handle take piece
       board.TakePiece(clickedSquare);
       board.ServerMovePiece(activeChessPieceScript, clickedSquare);

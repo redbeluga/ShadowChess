@@ -8,10 +8,6 @@ public class Rook : ChessPiece
   {
     get { return isWhite; }
   }
-  public override bool CanTake(Vector2Int newLoc)
-  {
-    throw new NotImplementedException();
-  }
 
   public override int ValidateMove(Vector2Int newLoc)
   {
@@ -21,10 +17,10 @@ public class Rook : ChessPiece
     for (int i = 1; i <= Math.Max(Math.Abs(newLoc.y - CurLoc.y), Math.Abs(newLoc.x - CurLoc.x)); i++)
     {
       Debug.Log(new Vector2Int(CurLoc.x + i * dX, CurLoc.y + i * dY));
-      if (!Player.GetComponent<Player>().Board.EmptySpotOnBoard(
+      if (!PlayerScript.Board.EmptySpotOnBoard(
         new Vector2Int(CurLoc.x + i * dX, CurLoc.y + i * dY)))
       {
-        if (i == Math.Abs(newLoc.x - CurLoc.x)) return 0;
+        if (i == Math.Max(Math.Abs(newLoc.y - CurLoc.y), Math.Abs(newLoc.x - CurLoc.x)) && !SameTeam(PlayerScript.Board.filledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>())) return 0;
         else return -1;
       }
     }

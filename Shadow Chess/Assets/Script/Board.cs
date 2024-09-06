@@ -103,7 +103,6 @@ public class Board : NetworkBehaviour
 
     filledBoard[loc.x, loc.y] = newChessPiece;
     newChessPiece.GetComponent<ChessPiece>().CurLoc = loc;
-    newChessPiece.GetComponent<ChessPiece>().onCreate();
 
     if (newChessPiece.GetComponent<ChessPiece>().IsWhite)
     {
@@ -117,6 +116,8 @@ public class Board : NetworkBehaviour
       newChessPiece.GetComponent<ChessPiece>().Player = players[1];
       players[1].GetComponent<Player>().AddChessPiece(newChessPiece);
     }
+
+    newChessPiece.GetComponent<ChessPiece>().onCreate();
   }
 
   private void OnDrawGizmos()
@@ -199,14 +200,17 @@ public class Board : NetworkBehaviour
     whiteMove = !whiteMove;
   }
   [ServerRpc(RequireOwnership = false)]
-  public void TakePiece(Vector2Int locToTake){
+  public void TakePiece(Vector2Int locToTake)
+  {
     GameObject takenChessPiece = filledBoard[locToTake.x, locToTake.y];
-    if(takenChessPiece.GetComponent<ChessPiece>().IsWhite){
+    if (takenChessPiece.GetComponent<ChessPiece>().IsWhite)
+    {
       // Debug.Log("REmove");
       activeWhitePieces.Remove(takenChessPiece);
       inActiveWhitePieces.Add(takenChessPiece);
     }
-    else{
+    else
+    {
       // Debug.Log("REmove");
       activeBlackPieces.Remove(takenChessPiece);
       inActiveBlackPieces.Add(takenChessPiece);
@@ -215,7 +219,8 @@ public class Board : NetworkBehaviour
     LocalDisablePiece(takenChessPiece);
   }
   [ObserversRpc]
-  public void LocalDisablePiece(GameObject disabledChessPiece){
+  public void LocalDisablePiece(GameObject disabledChessPiece)
+  {
     disabledChessPiece.SetActive(false);
   }
 }

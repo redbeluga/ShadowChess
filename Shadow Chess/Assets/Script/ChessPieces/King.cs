@@ -10,7 +10,7 @@ public class King : ChessPiece
   {
     get { return isWhite; }
   }
-  public override bool CanTake(Vector2Int newLoc)
+  public bool CanTake(Vector2Int newLoc)
   {
     throw new NotImplementedException();
   }
@@ -21,7 +21,7 @@ public class King : ChessPiece
     int dX = newLoc.x - CurLoc.x;
     int dY = newLoc.y - CurLoc.y;
     if (new Vector2(dX, dY).magnitude != 1 && Math.Abs(dX * dY) != 1) return -1;
-    if (!Player.GetComponent<Player>().Board.EmptySpotOnBoard(new Vector2Int(newLoc.x, newLoc.y)))
+    if (!PlayerScript.Board.EmptySpotOnBoard(new Vector2Int(newLoc.x, newLoc.y)))
     {
       return 0;
     }

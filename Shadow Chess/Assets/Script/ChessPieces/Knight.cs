@@ -9,10 +9,6 @@ public class Knight : ChessPiece
   {
     get { return isWhite; }
   }
-  public override bool CanTake(Vector2Int newLoc)
-  {
-    throw new NotImplementedException();
-  }
 
   public override int ValidateMove(Vector2Int newLoc)
   {
@@ -24,11 +20,15 @@ public class Knight : ChessPiece
     {
       return -1;
     }
-    if (!Player.GetComponent<Player>().Board.EmptySpotOnBoard(new Vector2Int(newLoc.x, newLoc.y)))
+    if (PlayerScript.Board.EmptySpotOnBoard(new Vector2Int(newLoc.x, newLoc.y)))
+    {
+      return 1;
+    }
+    if (!SameTeam(PlayerScript.Board.filledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>()))
     {
       return 0;
     }
-    return 1;
+    return -1;
   }
 
   // Start is called before the first frame update
