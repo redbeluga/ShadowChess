@@ -56,5 +56,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Shadow Chess.sln"
+    "dotnet.defaultSolution": "Shadow Chess.sln",
+    "FSharp.suggestGitignore": false
 }

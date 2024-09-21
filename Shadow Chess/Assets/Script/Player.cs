@@ -5,16 +5,17 @@ using Unity.Collections;
 public class Player : NetworkBehaviour
 {
   [SerializeField] private GameObject boardObject;
-  private Board board;
-  public bool white = true;
   [SerializeField] private List<GameObject> chessPieces = new List<GameObject>();
+  private Board board;
+  private bool white = true;
+  private Vector2Int kingLoc;
   bool holdingPiece = false;
-  // private GameObject activeChessPiece;
   private ChessPiece activeChessPieceScript;
   private Vector2 mousePosition;
 
   public Board Board { get => board; set => board = value; }
   public bool White { get => white; set => white = value; }
+  public Vector2Int KingLoc { get => kingLoc; set => kingLoc = value; }
 
   public override void OnStartClient()
   {
@@ -40,7 +41,11 @@ public class Player : NetworkBehaviour
     }
     board.AddPlayer(gameObject);
   }
-
+  [ServerRpc(RequireOwnership = false)]
+  public void ServerSetWhite(bool b, GameObject p)
+  {
+    p.GetComponent<Player>().white = b;
+  }
   [ObserversRpc]
   public void SetWhite(bool b, GameObject p)
   {
@@ -57,6 +62,7 @@ public class Player : NetworkBehaviour
       p.name += " Active";
     }
     p.GetComponent<Player>().white = b;
+    ServerSetWhite(b, p);
   }
 
 
@@ -64,7 +70,33 @@ public class Player : NetworkBehaviour
   void Update()
   {
     mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-    if (Input.GetKeyDown(KeyCode.B))
+    if (Input.GetKeyDown(KeyCode.K))
+    {
+      if (white)
+      {
+        Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
+        board.ServerCreateChessPiece(Board.whiteKing, clickedSquare);
+      }
+      else
+      {
+        Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
+        board.ServerCreateChessPiece(Board.blackKing, clickedSquare);
+      }
+    }
+    if (Input.GetKeyDown(KeyCode.R))
+    {
+      if (white)
+      {
+        Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
+        board.ServerCreateChessPiece(Board.whiteRook, clickedSquare);
+      }
+      else
+      {
+        Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
+        board.ServerCreateChessPiece(Board.blackRook, clickedSquare);
+      }
+    }
+    if (Input.GetKeyDown(KeyCode.P))
     {
       if (white)
       {
@@ -124,34 +156,37 @@ public class Player : NetworkBehaviour
   {
     Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
 
-    int moveValidation;
-    if (clickedSquare == new Vector2Int(-1, -1) || !IsMyMove(white)) moveValidation = -1;
-    else moveValidation = activeChessPieceScript.ValidateMove(clickedSquare);
+    int moveValidation = activeChessPieceScript.ValidateMove(clickedSquare);
 
-    if (moveValidation == -1) // doesn't work
+    if (moveValidation == 0) // take a piece
     {
-      board.ServerMovePiece(activeChessPieceScript, activeChessPieceScript.CurLoc);
+      board.TakePiece(clickedSquare);
+      board.ServerMovePiece(activeChessPieceScript, clickedSquare);
+      board.ServerPostMoveHandling();
     }
-    else if (moveValidation == 1) // works
+    else if (moveValidation == 1) // normal move
     {
       activeChessPieceScript.MovedCount++;
       board.ServerMovePiece(activeChessPieceScript, clickedSquare);
-      board.ServerChangeMove();
+      board.ServerPostMoveHandling();
     }
-    else if (moveValidation == -2)
-    { // en passant
+    else if (moveValidation == -2) // en passant
+    {
       board.TakePiece(new Vector2Int(clickedSquare.x, activeChessPieceScript.CurLoc.y));
       board.ServerMovePiece(activeChessPieceScript, clickedSquare);
-      board.ServerChangeMove();
+      board.ServerPostMoveHandling();
     }
-    else // take piece
-    { // handle take piece
-      board.TakePiece(clickedSquare);
-      board.ServerMovePiece(activeChessPieceScript, clickedSquare);
-      board.ServerChangeMove();
+    else if (moveValidation == 2)
+    { // castle king
+      // handled in king
+      board.ServerPostMoveHandling();
+    }
+    else // move invalid, go back to original spot
+    {
+      board.ServerMovePiece(activeChessPieceScript, activeChessPieceScript.CurLoc);
     }
   }
-  private bool IsMyMove(bool white)
+  public bool IsMyMove(bool white)
   {
     return board.WhiteMove == white;
   }
