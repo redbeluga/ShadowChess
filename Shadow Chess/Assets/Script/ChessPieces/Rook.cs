@@ -53,7 +53,7 @@ public class Rook : ChessPiece
 
     for (int i = 0; i < PossibleMoves.Count; i++)
     {
-      for (int j = 0; j < 8; j++)
+      for (int j = 1; j < 8; j++)
       {
         int moveValidation = SimpleValidateMove(CurLoc + PossibleMoves[i] * j);
         

@@ -56,7 +56,6 @@ public class Bishop : ChessPiece
 
         for (int i = 0; i < PossibleMoves.Count; i++)
         {
-            Debug.Log(i);
             for (int j = 1; j < 8; j++)
             {
                 // Debug.Log(i + ", " + j);

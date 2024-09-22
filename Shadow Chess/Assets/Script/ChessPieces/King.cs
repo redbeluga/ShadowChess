@@ -27,6 +27,23 @@ public class King : ChessPiece
         PlayerScript.KingLoc = CurLoc;
     }
 
+    public override int SimpleValidateMove(Vector2Int newLoc)
+    {
+        if (base.SimpleValidateMove(newLoc) == -1) return -1;
+
+        if (Math.Abs(newLoc.x - CurLoc.x) == 2)
+        {
+            if (MovedCount == 0 && CheckCastlePiece(newLoc, false))
+            {
+                return 1;
+            }
+
+            return -1;
+        }
+
+        return 1;
+    }
+
     public override bool PieceControlsSpot(Vector2Int loc, GameObject[,] boardOfPieces)
     {
         return Math.Abs(loc.x - CurLoc.x) <= 1 && Math.Abs(loc.y - CurLoc.y) <= 1;
@@ -40,7 +57,7 @@ public class King : ChessPiece
             (newLoc.x - CurLoc.x) * (newLoc.y - CurLoc.y) != 0) return -1;
         int dX = newLoc.x - CurLoc.x;
         int dY = newLoc.y - CurLoc.y;
-        if (MovedCount == 0 && CheckCastlePiece(newLoc))
+        if (MovedCount == 0 && CheckCastlePiece(newLoc, true))
         {
             return 2;
         }
@@ -51,7 +68,7 @@ public class King : ChessPiece
         return -1;
     }
 
-    private bool CheckCastlePiece(Vector2Int kingNewLoc)
+    private bool CheckCastlePiece(Vector2Int kingNewLoc, bool shouldCastle)
     {
         if (kingNewLoc.y != CurLoc.y || kingNewLoc.x - 2 < 0 || kingNewLoc.x - 1 > 7)
         {
@@ -83,7 +100,7 @@ public class King : ChessPiece
             return false;
         }
 
-        PlayerScript.Board.CastleKing(this, rookPiece, kingNewLoc, rookNewLoc);
+        if(shouldCastle) PlayerScript.Board.CastleKing(this, rookPiece, kingNewLoc, rookNewLoc);
         return true;
     }
 
@@ -133,6 +150,8 @@ public class King : ChessPiece
             new Vector2Int(0, -1),
             new Vector2Int(1, 1),
             new Vector2Int(-1, -1),
+            new Vector2Int(2, 0),
+            new Vector2Int(-2, 0),
         };
     }
 }

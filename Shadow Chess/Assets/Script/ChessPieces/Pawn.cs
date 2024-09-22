@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class Pawn : ChessPiece
 {

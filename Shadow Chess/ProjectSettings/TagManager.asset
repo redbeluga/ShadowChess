@@ -48,3 +48,6 @@ TagManager:
   - name: ChessPiece
     uniqueID: 3080514479
     locked: 0
+  - name: Fog
+    uniqueID: 1682187447
+    locked: 0

@@ -224,6 +224,9 @@ MonoBehaviour:
   _componentIndexCache: 255
   _addedNetworkObject: {fileID: 474693826}
   _networkObjectCache: {fileID: 0}
+  whiteMove: 1
+  whiteKingCheckmate: 0
+  blackKingCheckmate: 0
   blackPawn: {fileID: 7057956408367154891, guid: 53d1464114b635d4caf9f2e64f8883e1, type: 3}
   blackKnight: {fileID: 4935370432161365635, guid: beeafbe08fbf13f408f5618156172bd0, type: 3}
   blackRook: {fileID: 4921662763864120775, guid: 80cf8eb77afcdd74199ccab61809d39e, type: 3}
@@ -237,8 +240,8 @@ MonoBehaviour:
   whiteQueen: {fileID: 1308511954298189383, guid: 5ff4f187b352cf943ace0e5e8d3bd155, type: 3}
   whiteKing: {fileID: 4586635234780007385, guid: 607661a23751e8c4abfbe4b2a8a8fe56, type: 3}
   players: []
-  whitePieces: []
-  blackPieces: []
+  darkCover: {fileID: 4483342283140945254, guid: 17fdaddf27c5a1c41b12a8c0714ce455, type: 3}
+  lightCover: {fileID: 4483342283140945254, guid: 8436cc8e9d684c84fae6920796f616c9, type: 3}
 --- !u!212 &474693824
 SpriteRenderer:
   m_ObjectHideFlags: 0

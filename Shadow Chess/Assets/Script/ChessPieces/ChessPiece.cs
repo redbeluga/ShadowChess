@@ -4,7 +4,7 @@ using UnityEngine;
 
 public abstract class ChessPiece : NetworkBehaviour
 {
-  private GameObject player;
+  private Player player;
   private List<Vector2Int> possibleMoves; 
   private Player playerScript;
   [SerializeField] private Vector2Int curLoc;
@@ -43,15 +43,6 @@ public abstract class ChessPiece : NetworkBehaviour
     return 1;
   }
 
-  // public bool nextMoveCheckAndCurrentlyCheck(Vector2Int newLoc)
-  // {
-  //   if (playerScript.Board.KingUnderCheckNextMove(playerScript.White, this, newLoc))
-  //   {
-  //     return true;
-  //   }
-  //   return false;
-  // }
-
   public bool SameTeam(ChessPiece chessPiece)
   {
     return player == chessPiece.player;
@@ -71,7 +62,7 @@ public abstract class ChessPiece : NetworkBehaviour
 
   public abstract List<Vector2Int> GetControlledSpots();
   public Vector2Int CurLoc { get => CurLoc1; set => CurLoc1 = value; }
-  public GameObject Player { get => player; set => player = value; }
+  public Player Player { get => player; set => player = value; }
   public Vector2Int CurLoc1 { get => curLoc; set => curLoc = value; }
   public Player PlayerScript { get => playerScript; set => playerScript = value; }
   public int MovedCount { get => movedCount; set => movedCount = value; }

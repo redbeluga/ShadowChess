@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using FishNet.Object;
-using Unity.Collections;
+
 public class Player : NetworkBehaviour
 {
   [SerializeField] private GameObject boardObject;
@@ -23,93 +23,22 @@ public class Player : NetworkBehaviour
     if (IsOwner)
     {
       board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
-      ServerAddPlayerToBoard(gameObject);
+      ServerAddPlayerToBoard(this);
     }
     else
     {
       GetComponent<Player>().enabled = false;
     }
   }
-
-  [ServerRpc(RequireOwnership = false)]
-  private void ServerAddPlayerToBoard(GameObject gameObject)
-  {
-    // ClientAddPlayerToBoard(gameObject);
-    if (board == null)
-    {
-      board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
-    }
-    board.AddPlayer(gameObject);
-  }
-  [ServerRpc(RequireOwnership = false)]
-  public void ServerSetWhite(bool b, GameObject p)
-  {
-    p.GetComponent<Player>().white = b;
-  }
-  [ObserversRpc]
-  public void SetWhite(bool b, GameObject p)
-  {
-    if (b)
-    {
-      p.name = "White";
-    }
-    else
-    {
-      p.name = "Black";
-    }
-    if (IsOwner)
-    {
-      p.name += " Active";
-    }
-    p.GetComponent<Player>().white = b;
-    ServerSetWhite(b, p);
-  }
-
-
-  // Update is called once per frame
+  
   void Update()
   {
     mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-    if (Input.GetKeyDown(KeyCode.K))
-    {
-      if (white)
-      {
-        Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
-        board.ServerCreateChessPiece(Board.whiteKing, clickedSquare);
-      }
-      else
-      {
-        Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
-        board.ServerCreateChessPiece(Board.blackKing, clickedSquare);
-      }
-    }
-    if (Input.GetKeyDown(KeyCode.R))
-    {
-      if (white)
-      {
-        Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
-        board.ServerCreateChessPiece(Board.whiteRook, clickedSquare);
-      }
-      else
-      {
-        Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
-        board.ServerCreateChessPiece(Board.blackRook, clickedSquare);
-      }
-    }
-    if (Input.GetKeyDown(KeyCode.P))
-    {
-      if (white)
-      {
-        Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
-        board.ServerCreateChessPiece(Board.whitePawn, clickedSquare);
-      }
-      else
-      {
-        Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
-        board.ServerCreateChessPiece(Board.blackPawn, clickedSquare);
-      }
-    }
-
+    // if (Input.GetKeyDown(KeyCode.A))
+    // {
+    //   board.PrintControlledBoard();
+    // }
+    
     if (Input.GetMouseButtonDown(0)) // 0 is the left mouse button
     {
       if (holdingPiece) // drop piece
@@ -133,14 +62,52 @@ public class Player : NetworkBehaviour
       activeChessPieceScript.FollowPointer(mousePosition);
     }
   }
+
+  [ServerRpc(RequireOwnership = false)]
+  private void ServerAddPlayerToBoard(Player player)
+  {
+    // ClientAddPlayerToBoard(gameObject);
+    if (board == null)
+    {
+      board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
+    }
+    board.AddPlayer(player);
+  }
+  
+  [ServerRpc(RequireOwnership = false)]
+  public void ServerSetWhite(bool b, Player p)
+  {
+    p.white = b;
+  }
+  
   [ObserversRpc]
   public void AddChessPiece(GameObject newChessPiece)
   {
     if (IsOwner)
     {
       chessPieces.Add(newChessPiece);
-      newChessPiece.GetComponent<ChessPiece>().Player = gameObject;
+      newChessPiece.GetComponent<ChessPiece>().Player = this;
     }
+  }
+  
+  [ObserversRpc]
+  public void SetWhite(bool b, Player p)
+  {
+    if (b)
+    {
+      p.gameObject.name = "White";
+    }
+    else
+    {
+      p.gameObject.name = "Black";
+    }
+    if (IsOwner)
+    {
+      p.gameObject.name += " Active";
+      p.board.LocalIsWhite = b;
+    }
+    p.white = b;
+    ServerSetWhite(b, p);
   }
 
   public void LocalMovePiece(Vector2 mousePosition)
@@ -154,7 +121,7 @@ public class Player : NetworkBehaviour
   [ServerRpc(RequireOwnership = false)]
   public void ServerInitiateMovePiece(Vector2 mousePosition, ChessPiece activeChessPieceScript, bool white)
   {
-    Vector2Int clickedSquare = Board.FindClickedSquare(mousePosition);
+    Vector2Int clickedSquare = Board.OutputCorrectLocation(Board.FindClickedSquare(mousePosition), white);
 
     int moveValidation = activeChessPieceScript.ValidateMove(clickedSquare);
 
