@@ -45,10 +45,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e1cca8f55641094fb26340916b58669, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _componentIndexCache: 255
+  _componentIndexCache: 0
   _addedNetworkObject: {fileID: 4501385964092694268}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 4501385964092694268}
   boardObject: {fileID: 0}
+  chessPieces: []
 --- !u!114 &4501385964092694268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -65,7 +66,8 @@ MonoBehaviour:
   <ComponentIndex>k__BackingField: 0
   <PredictedSpawn>k__BackingField: {fileID: 0}
   <PredictedOwner>k__BackingField: {fileID: 0}
-  _networkBehaviours: []
+  _networkBehaviours:
+  - {fileID: 6899369250253002305}
   <SerializedRootNetworkBehaviour>k__BackingField: {fileID: 0}
   <SerializedNestedNetworkObjects>k__BackingField: []
   _isNetworked: 1
@@ -87,11 +89,11 @@ MonoBehaviour:
   _spectatorInterpolation: 2
   _enableTeleport: 0
   _teleportThreshold: 1
-  <PrefabId>k__BackingField: 0
+  <PrefabId>k__BackingField: 9
   <SpawnableCollectionId>k__BackingField: 0
-  <AssetPathHash>k__BackingField: 7807759643866311769
+  <AssetPathHash>k__BackingField: 1069539609305191528
   <SceneId>k__BackingField: 0
   SerializedTransformProperties:
-    Position: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0, w: 0}
-    LocalScale: {x: 0, y: 0, z: 0}
+    Position: {x: 2.0356917, y: -1.8153417, z: 0.020393465}
+    Rotation: {x: 0, y: 0, z: 0, w: 1}
+    LocalScale: {x: 1, y: 1, z: 1}

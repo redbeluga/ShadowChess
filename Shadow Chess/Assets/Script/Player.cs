@@ -20,15 +20,16 @@ public class Player : NetworkBehaviour
   public override void OnStartClient()
   {
     base.OnStartClient();
-    if (IsOwner)
-    {
-      board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
-      ServerAddPlayerToBoard(this);
-    }
-    else
+    if (!IsOwner)
     {
       GetComponent<Player>().enabled = false;
     }
+  }
+
+  public void OnGameStart()
+  {
+      board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
+      ServerAddPlayerToBoard(this);
   }
   
   void Update()
