@@ -34,7 +34,7 @@ public class LobbyHudCanvas : MonoBehaviour
     public async void OnClickCreate()
     {
         Debug.Log("Creating lobby");
-        await LobbyManager.Instance.CreateLobby();
+        // await LobbyManager.Instance.CreateLobby();
     }
 
     public async void OnClickJoin()
@@ -43,13 +43,11 @@ public class LobbyHudCanvas : MonoBehaviour
         {
             if (string.IsNullOrEmpty(_inputField.text))
             {
-                Debug.Log("Quick joining lobby");
                 await LobbyManager.Instance.QuickJoinLobby();
             }
             else
             {
-                Debug.Log("Joining lobby: " + _inputField.text);
-                await LobbyManager.Instance.JoinLobby(_inputField.text);
+                await LobbyManager.Instance.JoinLobby(_inputField.text, false);
             }
         }
         catch (Exception e)

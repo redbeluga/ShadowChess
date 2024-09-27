@@ -23,7 +23,7 @@ public enum EncryptionType
 public class LobbyManager : MonoBehaviour
 {
     [SerializeField] string lobbyName = "Lobby";
-    [SerializeField] int maxPlayers = 4;
+    [SerializeField] int maxPlayers = 2;
     [SerializeField] public NetworkManager _networkManager;
     [SerializeField] EncryptionType encryption = EncryptionType.DTLS;
 
@@ -34,7 +34,7 @@ public class LobbyManager : MonoBehaviour
     private bool isHost = false;
     public string CurrentHostId { get; private set; }
 
-    Lobby currentLobby;
+    private Lobby currentLobby;
     private string connectionType => encryption == EncryptionType.DTLS ? k_dtlsEncryption : k_wssEncryption;
 
     const float k_lobbyHeartbeatInterval = 15f;
@@ -46,8 +46,16 @@ public class LobbyManager : MonoBehaviour
 
     public event EventHandler<LobbyEventArgs> OnLeaveLobby;
     public event EventHandler<LobbyEventArgs> OnJoinLobby;
-    
-    public class LobbyEventArgs : EventArgs {
+    public event EventHandler<LobbyEventArgs> OnJoinedLobbyUpdate;
+    public event EventHandler<OnLobbyListChangedEventArgs> OnLobbyListChanged;
+
+    public class OnLobbyListChangedEventArgs : EventArgs
+    {
+        public List<Lobby> lobbyList;
+    }
+
+    public class LobbyEventArgs : EventArgs
+    {
         public Lobby lobby;
     }
 
@@ -96,19 +104,20 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
-    public async Task CreateLobby()
+    public async Task CreateLobby(String lobbyName, bool isPrivate)
     {
         if (currentLobby != null) return;
         try
         {
             CurrentHostId = PlayerId;
-            
+            isHost = true;
+
             Allocation allocation = await AllocateRelay();
             string relayJoinCode = await GetRelayJoinCode(allocation);
 
             CreateLobbyOptions options = new CreateLobbyOptions
             {
-                IsPrivate = false
+                IsPrivate = isPrivate
             };
 
             currentLobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, options);
@@ -125,8 +134,6 @@ public class LobbyManager : MonoBehaviour
 
             _networkManager.GetComponent<FishyUnityTransport>()
                 .SetRelayServerData(new RelayServerData(allocation, connectionType));
-            
-            Debug.Log("INVOKING EVENT HANDLER");
 
             OnJoinLobby?.Invoke(this, new LobbyEventArgs { lobby = currentLobby });
 
@@ -140,24 +147,28 @@ public class LobbyManager : MonoBehaviour
     }
 
 
-    public async Task JoinLobby(string joinCode)
+    public async Task JoinLobby(string password, bool isId)
     {
         if (currentLobby != null) return;
+        pollUpdateTimer = k_lobbyPollInterval;
         try
         {
-            currentLobby = await LobbyService.Instance.JoinLobbyByCodeAsync(joinCode);
+            currentLobby = isId ? await LobbyService.Instance.JoinLobbyByIdAsync(password) : await LobbyService.Instance.JoinLobbyByCodeAsync(password);
+            CurrentHostId = currentLobby.Data[k_hostID].Value;
+            // Debug.Log("Joined " + currentLobby.Name);
 
             string relayJoinCode = currentLobby.Data[k_keyJoinCode].Value;
             JoinAllocation joinAllocation = await JoinRelay(relayJoinCode);
-
-            CurrentHostId = currentLobby.Data[k_keyJoinCode].Value;
+            // Debug.Log("Joined relay");
 
             _networkManager.GetComponent<FishyUnityTransport>()
                 .SetRelayServerData(new RelayServerData(joinAllocation, connectionType));
-            
+
             OnJoinLobby?.Invoke(this, new LobbyEventArgs { lobby = currentLobby });
 
             _networkManager.ClientManager.StartConnection();
+            
+            // Debug.Log("Started fishnet connection");
         }
         catch (LobbyServiceException e)
         {
@@ -178,7 +189,7 @@ public class LobbyManager : MonoBehaviour
 
             _networkManager.GetComponent<FishyUnityTransport>()
                 .SetRelayServerData(new RelayServerData(joinAllocation, connectionType));
-            
+
             OnJoinLobby?.Invoke(this, new LobbyEventArgs { lobby = currentLobby });
 
             _networkManager.ClientManager.StartConnection();
@@ -204,12 +215,42 @@ public class LobbyManager : MonoBehaviour
             CurrentHostId = null;
 
             _networkManager.ClientManager.StopConnection();
-            
+
             OnLeaveLobby?.Invoke(this, new LobbyEventArgs { lobby = currentLobby });
         }
         catch (LobbyServiceException e)
         {
             Debug.LogError("Failed to leave lobby: " + e.Message);
+        }
+    }
+    
+    public async void RefreshLobbyList() {
+        try {
+            Debug.Log("Refresh Query");
+            QueryLobbiesOptions options = new QueryLobbiesOptions();
+            options.Count = 25;
+
+            // // Filter for open lobbies only
+            // options.Filters = new List<QueryFilter> {
+            //     new QueryFilter(
+            //         field: QueryFilter.FieldOptions.AvailableSlots,
+            //         op: QueryFilter.OpOptions.GT,
+            //         value: "0")
+            // };
+
+            // Order by newest lobbies first
+            options.Order = new List<QueryOrder> {
+                new QueryOrder(
+                    asc: false,
+                    field: QueryOrder.FieldOptions.Created)
+            };
+
+            QueryResponse lobbyListQueryResponse = await Lobbies.Instance.QueryLobbiesAsync();
+            Debug.Log(lobbyListQueryResponse.Results.Count);
+            Debug.Log("Lobby list change event invoked");
+            OnLobbyListChanged?.Invoke(this, new OnLobbyListChangedEventArgs { lobbyList = lobbyListQueryResponse.Results });
+        } catch (LobbyServiceException e) {
+            Debug.Log(e);
         }
     }
 
@@ -302,11 +343,12 @@ public class LobbyManager : MonoBehaviour
                 {
                     pollUpdateTimer = k_lobbyPollInterval;
                     currentLobby = await LobbyService.Instance.GetLobbyAsync(currentLobby.Id);
+                    
+                    OnJoinedLobbyUpdate?.Invoke(this, new LobbyEventArgs { lobby = currentLobby });
 
                     if (CurrentHostId != currentLobby.HostId)
                     {
                         Debug.Log("Host left");
-                        Debug.Log(_networkManager.IsServerStarted);
                         LeaveLobby();
                     }
                 }
