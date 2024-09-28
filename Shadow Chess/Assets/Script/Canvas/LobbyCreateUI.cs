@@ -34,8 +34,8 @@ public class LobbyCreateUI : MonoBehaviour, UI_Instance
 
         lobbyNameButton.onClick.AddListener(() =>
         {
-            UI_InputWindow.Show_Static("Lobby Name",
-                "abcdefghijklmnopqrstuvxywzABCDEFGHIJKLMNOPQRSTUVXYWZ .,-", 20,
+            UI_InputWindow.Show_Static("Lobby Name", "Save",
+                "abcdefghijklmnopqrstuvxywzABCDEFGHIJKLMNOPQRSTUVXYWZ .,-'", 20,
                 () =>
                 {
                     // Cancel
@@ -74,7 +74,7 @@ public class LobbyCreateUI : MonoBehaviour, UI_Instance
     {
         gameObject.SetActive(true);
 
-        lobbyName = "MyLobby";
+        lobbyName = LobbyManager.Instance.PlayerName + "'s Match";
         isPrivate = false;
 
         UpdateText();

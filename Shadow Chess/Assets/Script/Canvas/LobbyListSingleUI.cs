@@ -1,4 +1,3 @@
-
 using TMPro;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
@@ -13,13 +12,13 @@ public class LobbyListSingleUI : MonoBehaviour
     private Lobby lobby;
 
 
-    private void Awake() {
-        GetComponent<Button>().onClick.AddListener(() => {
-            LobbyManager.Instance.JoinLobby(lobby.Id, true);
-        });
+    private void Awake()
+    {
+        GetComponent<Button>().onClick.AddListener(() => { LobbyManager.Instance.JoinLobby(lobby.Id, true); });
     }
 
-    public void UpdateLobby(Lobby lobby) {
+    public void UpdateLobby(Lobby lobby)
+    {
         this.lobby = lobby;
 
         lobbyNameText.text = lobby.Name;

@@ -14,9 +14,6 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using Unity.VisualScripting;
-using WebSocketSharp;
-
 public class UI_InputWindow : MonoBehaviour
 {
     private static UI_InputWindow instance;
@@ -54,12 +51,13 @@ public class UI_InputWindow : MonoBehaviour
         }
     }
 
-    private void Show(string titleString, string validCharacters, int characterLimit, Action onEsc, Action<string> onOk,
+    private void Show(string titleString, string buttonText, string validCharacters, int characterLimit, Action onEsc, Action<string> onOk,
         UI_Instance uiInstance)
     {
         gameObject.SetActive(true);
         prevInstance = uiInstance;
         transform.SetAsLastSibling();
+        okBtn.GetComponentInChildren<TextMeshProUGUI>().text = buttonText;
 
         inputField.placeholder.GetComponent<TextMeshProUGUI>().text = titleString;
 
@@ -93,6 +91,10 @@ public class UI_InputWindow : MonoBehaviour
             // Valid
             return addedChar;
         }
+        else if (validCharacters.IndexOf(char.ToUpper(addedChar)) != -1)
+        {
+            return char.ToUpper(addedChar);
+        }
         else
         {
             // Invalid
@@ -100,15 +102,15 @@ public class UI_InputWindow : MonoBehaviour
         }
     }
 
-    public static void Show_Static(string titleString, string validCharacters, int characterLimit,
+    public static void Show_Static(string titleString, string buttonText, string validCharacters, int characterLimit,
         Action onCancel, Action<string> onOk, UI_Instance uiInstance)
     {
-        instance.Show(titleString, validCharacters, characterLimit, onCancel, onOk, uiInstance);
+        instance.Show(titleString, buttonText, validCharacters, characterLimit, onCancel, onOk, uiInstance);
     }
 
-    public static void Show_Static(string titleString, Action onCancel, Action<int> onOk, UI_Instance uiInstance)
+    public static void Show_Static(string titleString, string buttonText, Action onCancel, Action<int> onOk, UI_Instance uiInstance)
     {
-        instance.Show(titleString, "0123456789-", 20, onCancel, (string inputText) =>
+        instance.Show(titleString, buttonText, "0123456789", 20, onCancel, (string inputText) =>
             {
                 // Try to Parse input string
                 if (int.TryParse(inputText, out int _i))

@@ -284,7 +284,7 @@ GameObject:
   - component: {fileID: 2701294688078522738}
   - component: {fileID: 5690363250805326071}
   m_Layer: 5
-  m_Name: Lobby List Single
+  m_Name: LobbyListSingle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

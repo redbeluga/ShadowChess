@@ -22,7 +22,7 @@ public enum EncryptionType
 
 public class LobbyManager : MonoBehaviour
 {
-    [SerializeField] string lobbyName = "Lobby";
+    private string lobbyName;
     [SerializeField] int maxPlayers = 2;
     [SerializeField] public NetworkManager _networkManager;
     [SerializeField] EncryptionType encryption = EncryptionType.DTLS;
@@ -32,17 +32,20 @@ public class LobbyManager : MonoBehaviour
     public string PlayerId { get; private set; }
     public string PlayerName { get; private set; }
     private bool isHost = false;
+    private bool playerReady = false;
     public string CurrentHostId { get; private set; }
 
     private Lobby currentLobby;
     private string connectionType => encryption == EncryptionType.DTLS ? k_dtlsEncryption : k_wssEncryption;
 
-    const float k_lobbyHeartbeatInterval = 15f;
-    const float k_lobbyPollInterval = 1.1f;
-    const string k_keyJoinCode = "RelayJoinCode";
+    private const float k_lobbyHeartbeatInterval = 15f;
+    private const float k_lobbyPollInterval = 1.1f;
+    private const string k_keyJoinCode = "RelayJoinCode";
     private const string k_hostID = "HostID";
-    const string k_dtlsEncryption = "dtls"; // Datagram Transport Layer Security
-    const string k_wssEncryption = "wss"; // Web Socket Secure, use for WebGL builds
+    private const string k_dtlsEncryption = "dtls"; // Datagram Transport Layer Security
+    private const string k_wssEncryption = "wss"; // Web Socket Secure, use for WebGL builds
+    public const string k_playerName = "PlayerName";
+    public const string k_playerReady = "PlayerReady";
 
     public event EventHandler<LobbyEventArgs> OnLeaveLobby;
     public event EventHandler<LobbyEventArgs> OnJoinLobby;
@@ -109,6 +112,7 @@ public class LobbyManager : MonoBehaviour
         if (currentLobby != null) return;
         try
         {
+            Unity.Services.Lobbies.Models.Player player = GetPlayer();
             CurrentHostId = PlayerId;
             isHost = true;
 
@@ -117,6 +121,7 @@ public class LobbyManager : MonoBehaviour
 
             CreateLobbyOptions options = new CreateLobbyOptions
             {
+                Player = player,
                 IsPrivate = isPrivate
             };
 
@@ -150,10 +155,21 @@ public class LobbyManager : MonoBehaviour
     public async Task JoinLobby(string password, bool isId)
     {
         if (currentLobby != null) return;
-        pollUpdateTimer = k_lobbyPollInterval;
         try
         {
-            currentLobby = isId ? await LobbyService.Instance.JoinLobbyByIdAsync(password) : await LobbyService.Instance.JoinLobbyByCodeAsync(password);
+            pollUpdateTimer = k_lobbyPollInterval;
+            Unity.Services.Lobbies.Models.Player player = GetPlayer();
+
+            currentLobby = isId
+                ? await LobbyService.Instance.JoinLobbyByIdAsync(password, new JoinLobbyByIdOptions()
+                {
+                    Player = player
+                })
+                : await LobbyService.Instance.JoinLobbyByCodeAsync(password, new JoinLobbyByCodeOptions
+                {
+                    Player = player
+                });
+
             CurrentHostId = currentLobby.Data[k_hostID].Value;
             // Debug.Log("Joined " + currentLobby.Name);
 
@@ -167,7 +183,7 @@ public class LobbyManager : MonoBehaviour
             OnJoinLobby?.Invoke(this, new LobbyEventArgs { lobby = currentLobby });
 
             _networkManager.ClientManager.StartConnection();
-            
+
             // Debug.Log("Started fishnet connection");
         }
         catch (LobbyServiceException e)
@@ -181,7 +197,11 @@ public class LobbyManager : MonoBehaviour
         if (currentLobby != null) return;
         try
         {
-            currentLobby = await LobbyService.Instance.QuickJoinLobbyAsync();
+            Unity.Services.Lobbies.Models.Player player = GetPlayer();
+            currentLobby = await LobbyService.Instance.QuickJoinLobbyAsync(new QuickJoinLobbyOptions()
+            {
+                Player = player
+            });
             CurrentHostId = currentLobby.HostId;
 
             string relayJoinCode = currentLobby.Data[k_keyJoinCode].Value;
@@ -213,6 +233,7 @@ public class LobbyManager : MonoBehaviour
             currentLobby = null;
             isHost = false;
             CurrentHostId = null;
+            playerReady = false;
 
             _networkManager.ClientManager.StopConnection();
 
@@ -223,34 +244,88 @@ public class LobbyManager : MonoBehaviour
             Debug.LogError("Failed to leave lobby: " + e.Message);
         }
     }
-    
-    public async void RefreshLobbyList() {
-        try {
-            Debug.Log("Refresh Query");
+
+    public async void RefreshLobbyList()
+    {
+        try
+        {
+            // Debug.Log("Refresh Query");
             QueryLobbiesOptions options = new QueryLobbiesOptions();
             options.Count = 25;
 
-            // // Filter for open lobbies only
-            // options.Filters = new List<QueryFilter> {
-            //     new QueryFilter(
-            //         field: QueryFilter.FieldOptions.AvailableSlots,
-            //         op: QueryFilter.OpOptions.GT,
-            //         value: "0")
-            // };
+            // Filter for open lobbies only
+            options.Filters = new List<QueryFilter>
+            {
+                new QueryFilter(
+                    field: QueryFilter.FieldOptions.AvailableSlots,
+                    op: QueryFilter.OpOptions.GT,
+                    value: "0")
+            };
 
             // Order by newest lobbies first
-            options.Order = new List<QueryOrder> {
+            options.Order = new List<QueryOrder>
+            {
                 new QueryOrder(
                     asc: false,
                     field: QueryOrder.FieldOptions.Created)
             };
 
             QueryResponse lobbyListQueryResponse = await Lobbies.Instance.QueryLobbiesAsync();
-            Debug.Log(lobbyListQueryResponse.Results.Count);
-            Debug.Log("Lobby list change event invoked");
-            OnLobbyListChanged?.Invoke(this, new OnLobbyListChangedEventArgs { lobbyList = lobbyListQueryResponse.Results });
-        } catch (LobbyServiceException e) {
+            // Debug.Log(lobbyListQueryResponse.Results.Count);
+            // Debug.Log("Lobby list change event invoked");
+            OnLobbyListChanged?.Invoke(this,
+                new OnLobbyListChangedEventArgs { lobbyList = lobbyListQueryResponse.Results });
+        }
+        catch (LobbyServiceException e)
+        {
             Debug.Log(e);
+        }
+    }
+
+    private Unity.Services.Lobbies.Models.Player GetPlayer()
+    {
+        return new Unity.Services.Lobbies.Models.Player(AuthenticationService.Instance.PlayerId, null,
+            new Dictionary<string, PlayerDataObject>
+            {
+                {
+                    k_playerName, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, PlayerName)
+                },
+                {
+                    k_playerReady,
+                    new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, playerReady.ToString())
+                },
+            });
+    }
+
+    public async void ReadyUp()
+    {
+        if (currentLobby != null)
+        {
+            playerReady = !playerReady;
+            try
+            {
+                UpdatePlayerOptions options = new UpdatePlayerOptions();
+
+                options.Data = new Dictionary<string, PlayerDataObject>()
+                {
+                    {
+                        k_playerReady, new PlayerDataObject(
+                            visibility: PlayerDataObject.VisibilityOptions.Public,
+                            value: playerReady.ToString())
+                    }
+                };
+
+                string playerId = PlayerId;
+
+                Lobby lobby = await LobbyService.Instance.UpdatePlayerAsync(currentLobby.Id, playerId, options);
+                currentLobby = lobby;
+
+                OnJoinedLobbyUpdate?.Invoke(this, new LobbyEventArgs { lobby = currentLobby });
+            }
+            catch (LobbyServiceException e)
+            {
+                Debug.Log(e);
+            }
         }
     }
 
@@ -259,7 +334,7 @@ public class LobbyManager : MonoBehaviour
     {
         if (currentLobby == null)
         {
-            Debug.Log("Haven't joined bobby");
+            Debug.Log("Haven't joined lobby");
         }
         else
         {
@@ -343,7 +418,7 @@ public class LobbyManager : MonoBehaviour
                 {
                     pollUpdateTimer = k_lobbyPollInterval;
                     currentLobby = await LobbyService.Instance.GetLobbyAsync(currentLobby.Id);
-                    
+
                     OnJoinedLobbyUpdate?.Invoke(this, new LobbyEventArgs { lobby = currentLobby });
 
                     if (CurrentHostId != currentLobby.HostId)
@@ -360,13 +435,25 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
-    public string getLobbyName()
-    {
-        if (currentLobby == null)
-        {
-            return "null";
-        }
+    // public string getLobbyName()
+    // {
+    //     if (currentLobby == null)
+    //     {
+    //         return "null";
+    //     }
+    //
+    //     return currentLobby.Name;
+    // }
 
-        return currentLobby.Name;
+    public bool IsLobbyHost()
+    {
+        if (currentLobby == null || !isHost) return false;
+        return true;
+    }
+
+    public bool IsLobbyHost(string playerId)
+    {
+        if (currentLobby == null) return false;
+        return playerId.Equals(currentLobby.HostId);
     }
 }

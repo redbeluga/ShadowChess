@@ -82,7 +82,7 @@ public class LobbyHudCanvas : MonoBehaviour
         _joinLobbyButton.SetActive(false);
         _lobbyCodeInputField.SetActive(false);
         
-        _lobbyInfoText.text = LobbyManager.Instance.getLobbyName();
+        // _lobbyInfoText.text = LobbyManager.Instance.getLobbyName();
     }
 
     public void OnLeaveLobby(object sender, LobbyManager.LobbyEventArgs e)

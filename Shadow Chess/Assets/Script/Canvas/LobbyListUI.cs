@@ -21,13 +21,12 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
         refreshButton.onClick.AddListener(RefreshButtonClick);
         joinWithCodeButton.onClick.AddListener(() =>
         {
-            UI_InputWindow.Show_Static("Lobby Name", "ABCDEFGHIJKLMNOPQRSTUVXYWZ1234567890", 20,
-                () => {
+            UI_InputWindow.Show_Static("Join Code", "Join", "ABCDEFGHIJKLMNOPQRSTUVXYWZ1234567890", 6,
+                () =>
+                {
                     // Cancel
                 },
-                (string joinCode) => {
-                    JoinWithCodeButtonClick(joinCode);
-                },
+                (string joinCode) => { JoinWithCodeButtonClick(joinCode); },
                 this);
         });
         createLobbyButton.onClick.AddListener(CreateLobbyButtonClick);
@@ -56,13 +55,13 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
 
     private void LobbyManager_OnLobbyListChanged(object sender, LobbyManager.OnLobbyListChangedEventArgs e)
     {
-        Debug.Log("Lobby list change event recieved");
+        // Debug.Log("Lobby list change event recieved");
         UpdateLobbyList(e.lobbyList);
     }
 
     private void UpdateLobbyList(List<Lobby> lobbyList)
     {
-        Debug.Log("Updating lobby list");
+        // Debug.Log("Updating lobby list");
         foreach (Transform child in container)
         {
             if (child == lobbySingleTemplate) continue;
@@ -72,7 +71,7 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
 
         foreach (Lobby lobby in lobbyList)
         {
-            Debug.Log("Adding lobby");
+            // Debug.Log("Adding lobby");
             GameObject lobbySingleTransform = Instantiate(lobbySingleTemplate, container);
             LobbyListSingleUI lobbyListSingleUI = lobbySingleTransform.GetComponent<LobbyListSingleUI>();
             lobbyListSingleUI.UpdateLobby(lobby);
@@ -81,7 +80,7 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
 
     private void RefreshButtonClick()
     {
-        Debug.Log("Refresh Button Clicked");
+        // Debug.Log("Refresh Button Clicked");
         LobbyManager.Instance.RefreshLobbyList();
     }
 
