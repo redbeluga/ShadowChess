@@ -17,20 +17,19 @@ public class Player : NetworkBehaviour
   public bool White { get => white; set => white = value; }
   public Vector2Int KingLoc { get => kingLoc; set => kingLoc = value; }
 
-  public override void OnStartClient()
-  {
-    base.OnStartClient();
-    if (!IsOwner)
-    {
-      GetComponent<Player>().enabled = false;
-    }
-  }
-
-  public void OnGameStart()
-  {
-      board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
-      ServerAddPlayerToBoard(this);
-  }
+  // public override void OnStartClient()
+  // {
+  //   base.OnStartClient();
+  //   if (IsOwner)
+  //   {
+  //     board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
+  //     ServerAddPlayerToBoard(this);
+  //   }
+  //   else
+  //   {
+  //     GetComponent<Player>().enabled = false;
+  //   }
+  // }
   
   void Update()
   {

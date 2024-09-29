@@ -35,13 +35,10 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
     private void Start()
     {
         LobbyManager.Instance.OnLobbyListChanged += LobbyManager_OnLobbyListChanged;
+        LobbyManager.Instance.OnQueueJoinLobby += LobbyManager_OnQueueJoinLobby;
         LobbyManager.Instance.OnJoinLobby += LobbyManager_OnJoinedLobby;
         LobbyManager.Instance.OnLeaveLobby += LobbyManager_OnLeftLobby;
     }
-
-    // private void LobbyManager_OnKickedFromLobby(object sender, LobbyManager.LobbyEventArgs e) {
-    //     Show();
-    // }
 
     private void LobbyManager_OnLeftLobby(object sender, EventArgs e)
     {
@@ -51,6 +48,11 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
     private void LobbyManager_OnJoinedLobby(object sender, LobbyManager.LobbyEventArgs e)
     {
         Hide();
+    }
+
+    private void LobbyManager_OnQueueJoinLobby(object sender, EventArgs e)
+    {
+        LoadingAnimationUI.Instance.Show(false, true, "Joining lobby");
     }
 
     private void LobbyManager_OnLobbyListChanged(object sender, LobbyManager.OnLobbyListChangedEventArgs e)
@@ -80,7 +82,6 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
 
     private void RefreshButtonClick()
     {
-        // Debug.Log("Refresh Button Clicked");
         LobbyManager.Instance.RefreshLobbyList();
     }
 
@@ -107,6 +108,7 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
 
     public void Show()
     {
+        LobbyManager.Instance.RefreshLobbyList();
         gameObject.SetActive(true);
     }
 }

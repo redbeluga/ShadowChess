@@ -1,8 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 public class LobbyCreateUI : MonoBehaviour, UI_Instance
 {
@@ -29,7 +29,6 @@ public class LobbyCreateUI : MonoBehaviour, UI_Instance
                 lobbyName,
                 isPrivate
             );
-            Hide();
         });
 
         lobbyNameButton.onClick.AddListener(() =>
@@ -59,10 +58,21 @@ public class LobbyCreateUI : MonoBehaviour, UI_Instance
         Hide();
     }
 
+    private void Start()
+    {
+        LobbyManager.Instance.OnCreateLobby += OnCreateLobby_Event;
+    }
+
     private void UpdateText()
     {
         lobbyNameText.text = lobbyName;
         publicPrivateText.text = isPrivate ? "Private" : "Public";
+    }
+
+    public void OnCreateLobby_Event(object sender, EventArgs e)
+    {
+        LoadingAnimationUI.Instance.Show(false, true, "Loading lobby");
+        Hide();
     }
 
     private void Hide()

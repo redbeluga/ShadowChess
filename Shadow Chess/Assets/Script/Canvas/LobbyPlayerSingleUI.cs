@@ -15,24 +15,26 @@ public class LobbyPlayerSingleUI : MonoBehaviour
 
     private void Awake()
     {
-        // kickPlayerButton.onClick.AddListener(KickPlayer);
+        kickPlayerButton.onClick.AddListener(KickPlayer);
     }
 
-    public void SetKickPlayerButtonVisible(bool visible, bool isHost)
+    public void SetKickPlayerButtonVisible(bool visible)
     {
         kickPlayerButton.gameObject.SetActive(visible);
+    }
+
+    public void UpdatePlayer(Unity.Services.Lobbies.Models.Player player, bool ready, bool isHost)
+    {
+        this.player = player;
+        string isReady = isHost ? "" : ready ? ": Ready" : ": Not Ready";
+        playerNameText.text = $"{player.Data[LobbyManager.k_playerName].Value}{isReady}";
         isHostText.gameObject.SetActive(isHost);
     }
 
-    public void UpdatePlayer(Unity.Services.Lobbies.Models.Player player)
-    {
-        this.player = player;
-        playerNameText.text = player.Data[LobbyManager.k_playerName].Value;
+    private void KickPlayer() {
+        if (player != null) {
+            Debug.Log(player.Id);
+            LobbyManager.Instance.KickPlayer(player.Id);
+        }
     }
-
-    // private void KickPlayer() {
-    //     if (player != null) {
-    //         LobbyManager.Instance.KickPlayer(player.Id);
-    //     }
-    // }
 }

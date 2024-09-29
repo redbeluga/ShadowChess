@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using FishNet.Object;
 using TMPro;
 using Unity.Services.Authentication;
 using Unity.Services.Lobbies.Models;
@@ -26,7 +28,7 @@ public class LobbyUI : MonoBehaviour, UI_Instance
         Instance = this;
 
         leaveLobbyButton.onClick.AddListener(() => { LobbyManager.Instance.LeaveLobby(); });
-        
+
         readyUpButton.onClick.AddListener(OnReadyClick);
         readyUpButtonText = readyUpButton.gameObject.GetComponentInChildren<TextMeshProUGUI>();
     }
@@ -36,13 +38,20 @@ public class LobbyUI : MonoBehaviour, UI_Instance
         LobbyManager.Instance.OnJoinLobby += JoinLobby_Event;
         LobbyManager.Instance.OnJoinedLobbyUpdate += UpdateLobby_Event;
         LobbyManager.Instance.OnLeaveLobby += LobbyManager_OnLeftLobby;
-        // LobbyManager.Instance.OnKickedFromLobby += LobbyManager_OnLeftLobby;
+        LobbyManagerNetworker.Instance.OnKickedFromLobby += LobbyManager_OnKickedFromLobby;
 
         Hide();
     }
 
-    private void LobbyManager_OnLeftLobby(object sender, System.EventArgs e)
+    private void LobbyManager_OnLeftLobby(object sender, LobbyManager.LobbyEventArgs e)
     {
+        ClearLobby();
+        Hide();
+    }
+    
+    private void LobbyManager_OnKickedFromLobby(object sender, EventArgs e)
+    {
+        LobbyManager.Instance.LeaveLobby();
         ClearLobby();
         Hide();
     }
@@ -68,20 +77,25 @@ public class LobbyUI : MonoBehaviour, UI_Instance
             Transform playerSingleTransform = Instantiate(playerSingleTemplate, container);
             playerSingleTransform.gameObject.SetActive(true);
             LobbyPlayerSingleUI lobbyPlayerSingleUI = playerSingleTransform.GetComponent<LobbyPlayerSingleUI>();
-            allReady = allReady && (bool.Parse(player.Data[LobbyManager.k_playerReady].Value) ||
+            bool playerIsReady = bool.Parse(player.Data[LobbyManager.k_playerReady].Value);
+
+            allReady = allReady && (playerIsReady ||
                                     LobbyManager.Instance.IsLobbyHost(player.Id));
 
             lobbyPlayerSingleUI.SetKickPlayerButtonVisible(
                 LobbyManager.Instance.IsLobbyHost() &&
-                player.Id != AuthenticationService.Instance.PlayerId, LobbyManager.Instance.IsLobbyHost()
+                player.Id != AuthenticationService.Instance.PlayerId
             );
 
-            lobbyPlayerSingleUI.UpdatePlayer(player);
+            lobbyPlayerSingleUI.UpdatePlayer(player, playerIsReady, LobbyManager.Instance.IsLobbyHost(player.Id));
         }
 
         lobbyNameText.text = lobby.Name;
         playerCountText.text = lobby.Players.Count + "/" + lobby.MaxPlayers;
-        readyUpButton.interactable = allReady;
+        if (LobbyManager.Instance.IsLobbyHost())
+        {
+            readyUpButton.interactable = allReady;
+        }
     }
 
     private void ClearLobby()
@@ -97,7 +111,7 @@ public class LobbyUI : MonoBehaviour, UI_Instance
         Debug.Log("Ready Button Clicked");
         if (LobbyManager.Instance.IsLobbyHost())
         {
-            // LobbyManager.Instance.StartGame();
+            LobbyManager.Instance.StartGame();
             ClearLobby();
             Hide();
         }

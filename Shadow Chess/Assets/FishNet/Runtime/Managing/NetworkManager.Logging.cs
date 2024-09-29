@@ -8,18 +8,21 @@ namespace FishNet.Managing
     public partial class NetworkManager : MonoBehaviour
     {
         #region Serialized.
+
         /// <summary>
         /// Logging configuration to use. When empty default logging settings will be used.
         /// </summary>
-        [Tooltip("Logging configuration to use. When empty default logging settings will be used.")]
-        [SerializeField]
+        [Tooltip("Logging configuration to use. When empty default logging settings will be used.")] [SerializeField]
         private LoggingConfiguration _logging;
+
         #endregion
 
         #region Const.
+
         private const string ERROR_LOGGING_PREFIX = "Error - ";
         private const string WARNING_LOGGING_PREFIX = "Warning - ";
         private const string COMMON_LOGGING_PREFIX = "Log - ";
+
         #endregion
 
         /// <summary>
@@ -86,11 +89,9 @@ namespace FishNet.Managing
 
     public static class NetworkManagerExtensions
     {
-
         /// <summary>
         /// True if can log for loggingType.
         /// </summary>
-        
         internal static bool CanLog(this NetworkManager networkManager, LoggingType loggingType)
         {
             if (GetNetworkManager(ref networkManager))
@@ -102,7 +103,6 @@ namespace FishNet.Managing
         /// <summary>
         /// Performs a log using the loggingType, should logging settings permit it.
         /// </summary>
-        
         public static void Log(this NetworkManager networkManager, LoggingType loggingType, string value)
         {
             if (loggingType == LoggingType.Common)
@@ -116,7 +116,6 @@ namespace FishNet.Managing
         /// <summary>
         /// Performs a common log, should logging settings permit it.
         /// </summary>
-        
         public static void Log(this NetworkManager networkManager, string message)
         {
             if (GetNetworkManager(ref networkManager))
@@ -124,10 +123,10 @@ namespace FishNet.Managing
             else
                 Debug.Log(message);
         }
+
         /// <summary>
         /// Performs a warning log, should logging settings permit it.
         /// </summary>
-        
         public static void LogWarning(this NetworkManager networkManager, string message)
         {
             if (GetNetworkManager(ref networkManager))
@@ -139,7 +138,6 @@ namespace FishNet.Managing
         /// <summary>
         /// Performs an error log, should logging settings permit it.
         /// </summary>
-        
         public static void LogError(this NetworkManager networkManager, string message)
         {
             if (GetNetworkManager(ref networkManager))
@@ -162,29 +160,27 @@ namespace FishNet.Managing
         }
 
         #region Backwards compatibility.
+
         /// <summary>
         /// Performs a common log, should logging settings permit it.
         /// </summary>
-        
         public static void Log(string msg) => NetworkManagerExtensions.Log(null, msg);
+
         /// <summary>
         /// Performs a warning log, should logging settings permit it.
         /// </summary>
-        
         public static void LogWarning(string msg) => NetworkManagerExtensions.LogWarning(null, msg);
+
         /// <summary>
         /// Performs an error log, should logging settings permit it.
         /// </summary>
-        
         public static void LogError(string msg) => NetworkManagerExtensions.LogError(null, msg);
+
         /// <summary>
         /// True if can log for loggingType.
         /// </summary>
-        
         public static bool CanLog(LoggingType lt) => NetworkManagerExtensions.CanLog(null, lt);
-
 
         #endregion
     }
-
 }

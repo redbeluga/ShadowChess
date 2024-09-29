@@ -7,7 +7,7 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/Scenes/Bootstrap.unity
-    guid: 8e97d126dc2c86742ba8857161fb4e0d
+    guid: ff5a8fb605822814f98c640f8e542d88
   - enabled: 1
     path: Assets/Scenes/Lobby.unity
     guid: e7407b1e70359f64185e78d01248e42c
