@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using FishNet;
 using FishNet.Object;
+using FishNet.Transporting;
 using TMPro;
 using Unity.Services.Authentication;
 using Unity.Services.Lobbies.Models;
@@ -31,29 +33,41 @@ public class LobbyUI : MonoBehaviour, UI_Instance
 
         readyUpButton.onClick.AddListener(OnReadyClick);
         readyUpButtonText = readyUpButton.gameObject.GetComponentInChildren<TextMeshProUGUI>();
+        
+        InstanceFinder.ClientManager.RegisterBroadcast<LobbyManagerNetworker.StartGameEvent>(LobbyManager_OnStartGame);
+        InstanceFinder.ClientManager.RegisterBroadcast<LobbyManagerNetworker.KickPlayerEvent>(LobbyManager_OnKickedFromLobby);
     }
 
     private void Start()
     {
         LobbyManager.Instance.OnJoinLobby += JoinLobby_Event;
         LobbyManager.Instance.OnJoinedLobbyUpdate += UpdateLobby_Event;
-        LobbyManager.Instance.OnLeaveLobby += LobbyManager_OnLeftLobby;
-        LobbyManagerNetworker.Instance.OnKickedFromLobby += LobbyManager_OnKickedFromLobby;
+        LobbyManager.Instance.OnLeaveLobby += LobbyManager_OnLeftLobbyEvent;
 
         Hide();
     }
 
-    private void LobbyManager_OnLeftLobby(object sender, LobbyManager.LobbyEventArgs e)
+    private void LobbyManager_OnLeftLobbyEvent(object sender, LobbyManager.LobbyEventArgs e)
+    {
+        ClearLobby();
+        Hide();
+        
+    }
+
+    private void LobbyManager_OnStartGame(LobbyManagerNetworker.StartGameEvent startGameEvent, Channel channel)
     {
         ClearLobby();
         Hide();
     }
-    
-    private void LobbyManager_OnKickedFromLobby(object sender, EventArgs e)
+
+    private void LobbyManager_OnKickedFromLobby(LobbyManagerNetworker.KickPlayerEvent kickedPlayerEvent, Channel channel)
     {
-        LobbyManager.Instance.LeaveLobby();
-        ClearLobby();
-        Hide();
+        if(kickedPlayerEvent.PlayerId == LobbyManager.Instance.PlayerId)
+        {
+            LobbyManager.Instance.LeaveLobby();
+            ClearLobby();
+            Hide();
+        }
     }
 
     private void UpdateLobby_Event(object sender, LobbyManager.LobbyEventArgs e)
@@ -108,12 +122,9 @@ public class LobbyUI : MonoBehaviour, UI_Instance
 
     private void OnReadyClick()
     {
-        Debug.Log("Ready Button Clicked");
         if (LobbyManager.Instance.IsLobbyHost())
         {
             LobbyManager.Instance.StartGame();
-            ClearLobby();
-            Hide();
         }
         else
         {

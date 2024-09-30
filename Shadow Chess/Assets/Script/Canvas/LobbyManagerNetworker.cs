@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using FishNet.Broadcast;
 using FishNet.Object;
 using FishNet.Transporting;
 using UnityEngine;
@@ -9,27 +10,38 @@ public class LobbyManagerNetworker : NetworkBehaviour
 {
     public static LobbyManagerNetworker Instance { get; private set; }
     
-    public event EventHandler OnKickedFromLobby;
+    public struct  StartGameEvent : IBroadcast
+    {
+        public string Message;
+    }
+    
+    public struct  KickPlayerEvent : IBroadcast
+    {
+        public string PlayerId;
+    }
 
     private void Awake()
     {
         Instance = this;
     }
 
-    [ServerRpc (RequireOwnership = false)]
-    public void ServerInvokeKickedFromLobby(string playerId)
+    public void InvokeKickPlayer(string playerId)
     {
-        LocalInvokeKickedFromLobby(playerId);
-    }
-    
-    [ObserversRpc]
-    public void LocalInvokeKickedFromLobby(string playerId)
-    {
-        if (LobbyManager.Instance.PlayerId == playerId)
+        ServerManager.Broadcast(new KickPlayerEvent()
         {
-            OnKickedFromLobby?.Invoke(this, EventArgs.Empty);
-        }
+            PlayerId = playerId
+        });
     }
+
+    public void InvokeStartGame()
+    {
+        ServerManager.Broadcast(new StartGameEvent()
+        {
+            Message = "StartGame"
+        });
+    }
+
+    
     
     [ContextMenu("Check in")]
     public void IsObjectSpawned()

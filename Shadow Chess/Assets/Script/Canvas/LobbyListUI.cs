@@ -68,7 +68,7 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
         {
             if (child == lobbySingleTemplate) continue;
 
-            Destroy(child.gameObject);
+            DestroyImmediate(child.gameObject);
         }
 
         foreach (Lobby lobby in lobbyList)
@@ -97,7 +97,7 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
 
     private void CreateLobbyButtonClick()
     {
-        LobbyCreateUI.Instance.Show();
+        LobbyCreateUI.Instance.Show(this);
         Hide();
     }
 

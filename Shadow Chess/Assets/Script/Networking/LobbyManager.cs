@@ -1,8 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using FishNet;
+using FishNet.Broadcast;
 using FishNet.Managing;
-using FishNet.Object;
 using FishNet.Transporting.UTP;
 using Unity.Networking.Transport.Relay;
 using Unity.Services.Authentication;
@@ -25,6 +26,8 @@ public class LobbyManager : MonoBehaviour
 {
     private string lobbyName;
     [SerializeField] int maxPlayers = 2;
+    [SerializeField] private GameObject _lobbyManagerNetworkerPrefab;
+    private LobbyManagerNetworker lobbyManagerNetworker;
     public NetworkManager _networkManager;
     [SerializeField] EncryptionType encryption = EncryptionType.DTLS;
 
@@ -49,7 +52,6 @@ public class LobbyManager : MonoBehaviour
     public const string k_playerReady = "PlayerReady";
 
     public event EventHandler<LobbyEventArgs> OnLeaveLobby;
-    public event EventHandler<LobbyEventArgs> OnStartGame;
     public event EventHandler OnCreateLobby;
     public event EventHandler OnQueueJoinLobby;
     public event EventHandler<LobbyEventArgs> OnJoinLobby;
@@ -61,17 +63,15 @@ public class LobbyManager : MonoBehaviour
         public List<Lobby> lobbyList;
     }
 
-    public class KickedFromLobbyEventArgs : EventArgs
-    {
-        public string playerId;
-    }
-
     public class LobbyEventArgs : EventArgs
     {
         public Lobby lobby;
     }
 
     [SerializeField] private GameObject lobbyManagerNetworkerPrefab;
+    
+    [SerializeField] private string lobbySceneName;
+    [SerializeField] private string gameSceneName;
 
     private void Awake()
     {
@@ -86,10 +86,7 @@ public class LobbyManager : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        if (IsLobbyHost())
-        {
-            LeaveLobby();
-        }
+        LeaveLobby();
     }
 
     private void Update()
@@ -161,12 +158,12 @@ public class LobbyManager : MonoBehaviour
             _networkManager.GetComponent<FishyUnityTransport>()
                 .SetRelayServerData(new RelayServerData(allocation, connectionType));
 
-            OnJoinLobby?.Invoke(this, new LobbyEventArgs { lobby = currentLobby });
-
             _networkManager.ServerManager.StartConnection();
             _networkManager.ClientManager.StartConnection();
 
-            // SpawnManagers();
+            SpawnManagers();
+            
+            OnJoinLobby?.Invoke(this, new LobbyEventArgs { lobby = currentLobby });
         }
         catch (LobbyServiceException e)
         {
@@ -174,6 +171,12 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
+    private void SpawnManagers()
+    {
+        lobbyManagerNetworker = Instantiate(_lobbyManagerNetworkerPrefab).GetComponent<LobbyManagerNetworker>();
+        DontDestroyOnLoad(lobbyManagerNetworker.gameObject);
+        InstanceFinder.ServerManager.Spawn(lobbyManagerNetworker.gameObject, null);
+    }
 
     public async Task JoinLobby(string password, bool isId)
     {
@@ -298,8 +301,6 @@ public class LobbyManager : MonoBehaviour
             };
 
             QueryResponse lobbyListQueryResponse = await Lobbies.Instance.QueryLobbiesAsync();
-            // Debug.Log(lobbyListQueryResponse.Results.Count);
-            // Debug.Log("Lobby list change event invoked");
             OnLobbyListChanged?.Invoke(this,
                 new OnLobbyListChangedEventArgs { lobbyList = lobbyListQueryResponse.Results });
         }
@@ -308,21 +309,13 @@ public class LobbyManager : MonoBehaviour
             Debug.Log(e);
         }
     }
-    public async void KickPlayer(string playerId)
+    public void KickPlayer(string playerId)
     {
         if (currentLobby != null && IsLobbyHost())
         {
-            LobbyManagerNetworker.Instance.ServerInvokeKickedFromLobby(playerId);
+            LobbyManagerNetworker.Instance.InvokeKickPlayer(playerId);
         }
     }
-
-    // [ContextMenu("Check Client")]
-    // public void CheckClient()
-    // {
-    //     Debug.Log("HELLO");
-    //     Debug.Log(LobbyManagerNetworker.Instance.IsObjectSpawned());
-    //     Debug.Log(_networkManager.ClientManager.Started);
-    // }
 
     private Unity.Services.Lobbies.Models.Player GetPlayer()
     {
@@ -371,29 +364,11 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
-    // private void SpawnManagers()
-    // {
-    //     GameObject managerInstance = Instantiate(lobbyManagerNetworkerPrefab);
-    //     managerInstance.GetComponent<NetworkObject>().Spawn(managerInstance);
-    // }
-
     public void StartGame()
     {
-        Debug.Log("Starting game");
-    }
-
-    [ContextMenu("Get Manager Info")]
-    public async Task GetManagerInfo()
-    {
-        Debug.Log(PlayerId);
-        if (currentLobby == null)
-        {
-            Debug.Log("Haven't joined lobby");
-        }
-        else
-        {
-            Debug.Log(currentLobby.Players.Count + " player(s) in lobby: " + currentLobby.Name);
-        }
+        SceneManager.Instance.LoadScene(gameSceneName);
+        SceneManager.Instance.UnloadScene(lobbySceneName);
+        LobbyManagerNetworker.Instance.InvokeStartGame();
     }
 
     async Task<Allocation> AllocateRelay()

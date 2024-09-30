@@ -14,6 +14,7 @@ public class LobbyCreateUI : MonoBehaviour, UI_Instance
     [SerializeField] private Button publicPrivateButton;
     [SerializeField] private TextMeshProUGUI lobbyNameText;
     [SerializeField] private TextMeshProUGUI publicPrivateText;
+    private static UI_Instance prevInstance;
 
 
     private string lobbyName;
@@ -63,6 +64,15 @@ public class LobbyCreateUI : MonoBehaviour, UI_Instance
         LobbyManager.Instance.OnCreateLobby += OnCreateLobby_Event;
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            prevInstance?.Show();
+            Hide();
+        }
+    }
+
     private void UpdateText()
     {
         lobbyNameText.text = lobbyName;
@@ -77,6 +87,7 @@ public class LobbyCreateUI : MonoBehaviour, UI_Instance
 
     private void Hide()
     {
+        prevInstance = null;
         gameObject.SetActive(false);
     }
 
@@ -88,5 +99,11 @@ public class LobbyCreateUI : MonoBehaviour, UI_Instance
         isPrivate = false;
 
         UpdateText();
+    }
+
+    public void Show(UI_Instance uiInstance)
+    {
+        prevInstance = uiInstance;
+        Show();
     }
 }

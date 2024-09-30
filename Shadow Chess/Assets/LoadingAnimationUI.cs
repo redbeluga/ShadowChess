@@ -8,8 +8,6 @@ public class LoadingAnimationUI : MonoBehaviour
 {
     public static LoadingAnimationUI Instance { get; private set; }
     
-    private GameObject animation;
-    
     [SerializeField] private TextMeshProUGUI loadingTextObject;
     private bool textShouldLoad;
     private string loadingText;
