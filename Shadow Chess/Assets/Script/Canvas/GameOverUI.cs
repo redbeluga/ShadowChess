@@ -12,7 +12,6 @@ public class GameOverUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI winnerDisplayText;
     [SerializeField] private TextMeshProUGUI reason;
     [SerializeField] private Button backToLobbyButton;
-    [SerializeField] private Button newMatchButton;
 
     private void Awake()
     {
@@ -23,12 +22,6 @@ public class GameOverUI : MonoBehaviour
         {
             Hide();
             LobbyManager.Instance.LeaveLobby(true);
-        });
-        newMatchButton.onClick.AddListener(() =>
-        {
-            Hide();
-            LobbyManager.Instance.LeaveLobby(true);
-            LobbyListUI.Instance.CreateLobbyButtonClick();
         });
     }
 

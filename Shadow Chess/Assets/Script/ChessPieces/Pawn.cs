@@ -28,14 +28,10 @@ public class Pawn : ChessPiece
 
     public override int SimpleValidateMove(Vector2Int newLoc)
     {
-        Debug.Log("error seems to be here");
         if (base.SimpleValidateMove(newLoc) == -1) return -1;
-        Debug.Log("error seems to be here");
         if (Math.Abs(newLoc.y-CurLoc.y) == 2 && MovedCount == 0 && Board.Instance.EmptySpotOnBoard(newLoc)) return 1;
         if (Math.Abs(newLoc.y-CurLoc.y) == 1 && newLoc.x == CurLoc.x && Board.Instance.EmptySpotOnBoard(newLoc)) return 1;
-        Debug.Log("error seems to be here");
         if (CanTake(newLoc) != -1) return 1;
-        Debug.Log("error seems to be here");
         return -1;
     }
 
@@ -109,9 +105,7 @@ public class Pawn : ChessPiece
 
         for (int i = 0; i < PossibleMoves.Count; i++)
         {
-            Debug.Log("error is here");
             int moveValidation = SimpleValidateMove(CurLoc + PossibleMoves[i]);
-            Debug.Log("error has made it here");
             if (moveValidation == 1 || moveValidation == 0 || moveValidation == -2)
             {
                 currentPossibleMoves.Add(CurLoc + PossibleMoves[i]);

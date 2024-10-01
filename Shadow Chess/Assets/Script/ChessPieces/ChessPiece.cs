@@ -37,8 +37,7 @@ public abstract class ChessPiece : NetworkBehaviour
   public virtual int SimpleValidateMove(Vector2Int newLoc)
   {
     if (!Board.LocInBounds(newLoc)) return -1;
-
-    if (Board.Instance.EmptySpotOnBoard(newLoc))
+    if (!Board.Instance.EmptySpotOnBoard(newLoc))
     {
       if (SameTeam(Board.Instance.FilledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>()))
       {

@@ -158,12 +158,10 @@ public class LobbyManager : MonoBehaviour
                     { k_hostID, new DataObject(DataObject.VisibilityOptions.Member, PlayerId) }
                 }
             });
-            Debug.Log("SETTING RELAY");
 
             _networkManager.GetComponent<FishyUnityTransport>()
                 .SetRelayServerData(new RelayServerData(allocation, connectionType));
 
-            Debug.Log("STARTING FISHNET");
             _networkManager.ServerManager.StartConnection();
             _networkManager.ClientManager.StartConnection();
 

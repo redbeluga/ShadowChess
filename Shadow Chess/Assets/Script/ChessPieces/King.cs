@@ -29,18 +29,22 @@ public class King : ChessPiece
 
     public override int SimpleValidateMove(Vector2Int newLoc)
     {
+        Debug.Log("Error made it here");
         if (base.SimpleValidateMove(newLoc) == -1) return -1;
-
+        Debug.Log("Error made it here");
         if (Math.Abs(newLoc.x - CurLoc.x) == 2)
         {
+            Debug.Log("Error made it here");
             if (MovedCount == 0 && CheckCastlePiece(newLoc, false))
             {
                 return 1;
             }
 
+            Debug.Log("Error made it here");
             return -1;
         }
 
+        Debug.Log("Error made it here");
         return 1;
     }
 
@@ -148,8 +152,8 @@ public class King : ChessPiece
             new Vector2Int(-1, -1),
             new Vector2Int(0, 1),
             new Vector2Int(0, -1),
-            new Vector2Int(1, 1),
-            new Vector2Int(-1, -1),
+            new Vector2Int(1, -1),
+            new Vector2Int(-1, 1),
             new Vector2Int(2, 0),
             new Vector2Int(-2, 0),
         };

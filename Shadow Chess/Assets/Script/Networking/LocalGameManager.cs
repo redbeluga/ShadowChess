@@ -23,6 +23,7 @@ public class LocalGameManager : MonoBehaviour
 
     public void GameOver(bool winner, string reason)
     {
+        Board.Instance.GameOver = true;
         Debug.Log("game over: " + reason);
         GameOverUI.Instance.Show(winner, reason);
     }

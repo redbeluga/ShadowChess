@@ -66,7 +66,7 @@ public class Player : NetworkBehaviour
         //   board.PrintControlledBoard();
         // }
 
-        if (Board.Instance != null && Input.GetMouseButtonDown(0) && !Board.Instance.GameOver()) // 0 is the left mouse button
+        if (Board.Instance != null && Input.GetMouseButtonDown(0) && !Board.Instance.GameOver) // 0 is the left mouse button
         {
             if (holdingPiece) // drop piece
             {
@@ -147,9 +147,6 @@ public class Player : NetworkBehaviour
     public void LocalMovePiece(Vector2 mousePosition)
     {
         ServerInitiateMovePiece(mousePosition, activeChessPieceScript, white);
-        activeChessPieceScript.GetComponentInChildren<SpriteRenderer>().sortingOrder = 1;
-        holdingPiece = false;
-        activeChessPieceScript = null;
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -186,6 +183,25 @@ public class Player : NetworkBehaviour
         else // move invalid, go back to original spot
         {
             Board.Instance.ServerMovePiece(activeChessPieceScript, activeChessPieceScript.CurLoc);
+        }
+
+        ServerSetSpriteLayer(activeChessPieceScript.gameObject, 1, white);
+    }
+
+    [ServerRpc (RequireOwnership = false)]
+    private void ServerSetSpriteLayer(GameObject chessPiece, int layer, bool white)
+    {
+        LocalSetSpriteLayer(chessPiece, layer, white);
+    }
+    
+    [ObserversRpc]
+    private void LocalSetSpriteLayer(GameObject chessPiece, int layer, bool white)
+    {
+        if (Board.Instance.LocalIsWhite == white)
+        {
+            holdingPiece = false;
+            activeChessPieceScript = null;
+            chessPiece.GetComponentInChildren<SpriteRenderer>().sortingOrder = layer;
         }
     }
 
