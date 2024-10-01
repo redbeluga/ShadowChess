@@ -18,7 +18,7 @@ public class Bishop : ChessPiece
         int dY = MathF.Sign(loc.y - CurLoc.y);
         for (int i = 1; i <= Math.Abs(loc.x - CurLoc.x) - 1; i++)
         {
-            if (!PlayerScript.Board.EmptySpotOnBoard(
+            if (!Board.Instance.EmptySpotOnBoard(
                     new Vector2Int(CurLoc.x + i * dX, CurLoc.y + i * dY)))
             {
                 return false;
@@ -37,11 +37,11 @@ public class Bishop : ChessPiece
         int dY = MathF.Sign(newLoc.y - CurLoc.y);
         for (int i = 1; i <= Math.Abs(newLoc.x - CurLoc.x); i++)
         {
-            if (!PlayerScript.Board.EmptySpotOnBoard(
+            if (!Board.Instance.EmptySpotOnBoard(
                     new Vector2Int(CurLoc.x + i * dX, CurLoc.y + i * dY)))
             {
                 if (i == Math.Abs(newLoc.x - CurLoc.x) &&
-                    !SameTeam(PlayerScript.Board.FilledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>())) return 0;
+                    !SameTeam(Board.Instance.FilledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>())) return 0;
                 else return -1;
             }
         }

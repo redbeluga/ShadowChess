@@ -9,18 +9,11 @@ public class Player : NetworkBehaviour
 {
     [SerializeField] private GameObject boardObject;
     [SerializeField] private List<GameObject> chessPieces = new List<GameObject>();
-    public Board board;
     private bool white = true;
     private Vector2Int kingLoc;
     bool holdingPiece = false;
     private ChessPiece activeChessPieceScript;
     private Vector2 mousePosition;
-
-    public Board Board
-    {
-        get => board;
-        set => board = value;
-    }
 
     public bool White
     {
@@ -48,29 +41,21 @@ public class Player : NetworkBehaviour
         }
     }
     
-    private async void LobbyManager_OnStartGame(SceneLoadEndEventArgs endEventArgs)
+    private void LobbyManager_OnStartGame(SceneLoadEndEventArgs endEventArgs)
     {
         if (endEventArgs.LoadedScenes.Length > 0 && endEventArgs.LoadedScenes[0].name == "Chess" && IsOwner)
         {
             GameObject board = GameObject.Find("Board");
-
-            if (board == null)
-            {
-                await Task.Delay(100);
-                LobbyManager_OnStartGame(endEventArgs);
-            }
-            else
-            {
-                this.board = board.GetComponent<Board>();
-                ServerAddPlayerToBoard(this);
-            }
+            
+            LobbyManager.Instance.InGame = true;
+            ServerAddPlayerToBoard(this);
         }
     }
 
     [ContextMenu("FindInfo")]
     public void FindInfo()
     {
-        Debug.Log(board);
+        Debug.Log(Board.Instance);
     }
 
     void Update()
@@ -81,7 +66,7 @@ public class Player : NetworkBehaviour
         //   board.PrintControlledBoard();
         // }
 
-        if (Input.GetMouseButtonDown(0)) // 0 is the left mouse button
+        if (Board.Instance != null && Input.GetMouseButtonDown(0) && !Board.Instance.GameOver()) // 0 is the left mouse button
         {
             if (holdingPiece) // drop piece
             {
@@ -109,15 +94,15 @@ public class Player : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void ServerAddPlayerToBoard(Player player)
     {
-        if (board == null)
+        if (Board.Instance == null)
         {
-            board = GameObject.Find("Board").GetComponent<Board>();
+            Debug.Log("Board instance is null");
         }
         
-        if (!board.players.Contains(player))
+        if (!Board.Instance.players.Contains(player))
         {
             Debug.Log("adding player");
-            board.AddPlayer(player);
+            Board.Instance.AddPlayer(player);
         }
     }
 
@@ -152,7 +137,7 @@ public class Player : NetworkBehaviour
         if (IsOwner)
         {
             p.gameObject.name += " Active";
-            p.board.LocalIsWhite = b;
+            Board.Instance.LocalIsWhite = b;
         }
 
         p.white = b;
@@ -170,42 +155,42 @@ public class Player : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void ServerInitiateMovePiece(Vector2 mousePosition, ChessPiece activeChessPieceScript, bool white)
     {
-        Vector2Int clickedSquare = Board.OutputCorrectLocation(Board.FindClickedSquare(mousePosition), white);
+        Vector2Int clickedSquare = Board.Instance.OutputCorrectLocation(Board.Instance.FindClickedSquare(mousePosition), white);
 
         int moveValidation = activeChessPieceScript.ValidateMove(clickedSquare);
 
         if (moveValidation == 0) // take a piece
         {
-            board.TakePiece(clickedSquare);
-            board.ServerMovePiece(activeChessPieceScript, clickedSquare);
-            board.ServerPostMoveHandling();
+            Board.Instance.TakePiece(clickedSquare);
+            Board.Instance.ServerMovePiece(activeChessPieceScript, clickedSquare);
+            Board.Instance.ServerPostMoveHandling();
         }
         else if (moveValidation == 1) // normal move
         {
             activeChessPieceScript.MovedCount++;
-            board.ServerMovePiece(activeChessPieceScript, clickedSquare);
-            board.ServerPostMoveHandling();
+            Board.Instance.ServerMovePiece(activeChessPieceScript, clickedSquare);
+            Board.Instance.ServerPostMoveHandling();
         }
         else if (moveValidation == -2) // en passant
         {
-            board.TakePiece(new Vector2Int(clickedSquare.x, activeChessPieceScript.CurLoc.y));
-            board.ServerMovePiece(activeChessPieceScript, clickedSquare);
-            board.ServerPostMoveHandling();
+            Board.Instance.TakePiece(new Vector2Int(clickedSquare.x, activeChessPieceScript.CurLoc.y));
+            Board.Instance.ServerMovePiece(activeChessPieceScript, clickedSquare);
+            Board.Instance.ServerPostMoveHandling();
         }
         else if (moveValidation == 2)
         {
             // castle king
             // handled in king
-            board.ServerPostMoveHandling();
+            Board.Instance.ServerPostMoveHandling();
         }
         else // move invalid, go back to original spot
         {
-            board.ServerMovePiece(activeChessPieceScript, activeChessPieceScript.CurLoc);
+            Board.Instance.ServerMovePiece(activeChessPieceScript, activeChessPieceScript.CurLoc);
         }
     }
 
     public bool IsMyMove(bool white)
     {
-        return board.WhiteMove == white;
+        return Board.Instance.WhiteMove == white;
     }
 }

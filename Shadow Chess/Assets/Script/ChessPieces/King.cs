@@ -63,8 +63,8 @@ public class King : ChessPiece
         }
 
         if (new Vector2(dX, dY).magnitude != 1 && Math.Abs(dX * dY) != 1) return -1;
-        if (PlayerScript.Board.EmptySpotOnBoard(new Vector2Int(newLoc.x, newLoc.y))) return 1;
-        if (!SameTeam(PlayerScript.Board.FilledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>())) return 0;
+        if (Board.Instance.EmptySpotOnBoard(new Vector2Int(newLoc.x, newLoc.y))) return 1;
+        if (!SameTeam(Board.Instance.FilledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>())) return 0;
         return -1;
     }
 
@@ -78,15 +78,15 @@ public class King : ChessPiece
         ChessPiece rookPiece;
         Vector2Int rookNewLoc;
         if (kingNewLoc.x - CurLoc.x == 2 &&
-            PlayerScript.Board.FilledBoard[kingNewLoc.x + 1, kingNewLoc.y].GetComponent<ChessPiece>() is Rook)
+            Board.Instance.FilledBoard[kingNewLoc.x + 1, kingNewLoc.y].GetComponent<ChessPiece>() is Rook)
         {
-            rookPiece = PlayerScript.Board.FilledBoard[kingNewLoc.x + 1, kingNewLoc.y].GetComponent<ChessPiece>();
+            rookPiece = Board.Instance.FilledBoard[kingNewLoc.x + 1, kingNewLoc.y].GetComponent<ChessPiece>();
             rookNewLoc = new Vector2Int(CurLoc.x + 1, CurLoc.y);
         }
         else if (kingNewLoc.x - CurLoc.x == -2 &&
-                 PlayerScript.Board.FilledBoard[kingNewLoc.x - 2, kingNewLoc.y].GetComponent<ChessPiece>() is Rook)
+                 Board.Instance.FilledBoard[kingNewLoc.x - 2, kingNewLoc.y].GetComponent<ChessPiece>() is Rook)
         {
-            rookPiece = PlayerScript.Board.FilledBoard[kingNewLoc.x - 2, kingNewLoc.y].GetComponent<ChessPiece>();
+            rookPiece = Board.Instance.FilledBoard[kingNewLoc.x - 2, kingNewLoc.y].GetComponent<ChessPiece>();
             rookNewLoc = new Vector2Int(CurLoc.x - 1, CurLoc.y);
         }
         else
@@ -94,13 +94,13 @@ public class King : ChessPiece
             return false;
         }
 
-        if (!PlayerScript.Board.AllEmptySpacesBetween(rookPiece, this))
+        if (!Board.Instance.AllEmptySpacesBetween(rookPiece, this))
         {
             // Debug.Log("dont work");
             return false;
         }
 
-        if(shouldCastle) PlayerScript.Board.CastleKing(this, rookPiece, kingNewLoc, rookNewLoc);
+        if(shouldCastle) Board.Instance.CastleKing(this, rookPiece, kingNewLoc, rookNewLoc);
         return true;
     }
 
@@ -115,7 +115,7 @@ public class King : ChessPiece
         Debug.Log(minX + " " + minY + " " + maxX + " " + maxY);
         for (int x = minX + dx, y = minY + dy; x < maxX || y < maxY; x += dx, y += dy)
         {
-            if (!PlayerScript.Board.EmptySpotOnBoard(new Vector2Int(x, y))) return false; // see if opp team has control
+            if (!Board.Instance.EmptySpotOnBoard(new Vector2Int(x, y))) return false; // see if opp team has control
         }
 
         return true;

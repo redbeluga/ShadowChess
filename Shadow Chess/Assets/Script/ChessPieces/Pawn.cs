@@ -28,13 +28,14 @@ public class Pawn : ChessPiece
 
     public override int SimpleValidateMove(Vector2Int newLoc)
     {
+        Debug.Log("error seems to be here");
         if (base.SimpleValidateMove(newLoc) == -1) return -1;
-
-        if (Math.Abs(newLoc.y-CurLoc.y) == 2 && MovedCount == 0 && PlayerScript.Board.EmptySpotOnBoard(newLoc)) return 1;
-        if (Math.Abs(newLoc.y-CurLoc.y) == 1 && newLoc.x == CurLoc.x && PlayerScript.Board.EmptySpotOnBoard(newLoc)) return 1;
-
+        Debug.Log("error seems to be here");
+        if (Math.Abs(newLoc.y-CurLoc.y) == 2 && MovedCount == 0 && Board.Instance.EmptySpotOnBoard(newLoc)) return 1;
+        if (Math.Abs(newLoc.y-CurLoc.y) == 1 && newLoc.x == CurLoc.x && Board.Instance.EmptySpotOnBoard(newLoc)) return 1;
+        Debug.Log("error seems to be here");
         if (CanTake(newLoc) != -1) return 1;
-
+        Debug.Log("error seems to be here");
         return -1;
     }
 
@@ -44,14 +45,14 @@ public class Pawn : ChessPiece
 
         if (MathF.Sign(CurLoc.y - newLoc.y) != validDirection) return -1;
 
-        if (newLoc.x == CurLoc.x && PlayerScript.Board.EmptySpotOnBoard(newLoc))
+        if (newLoc.x == CurLoc.x && Board.Instance.EmptySpotOnBoard(newLoc))
         {
             if (Math.Abs(newLoc.y - CurLoc.y) == 1)
             {
                 return 1;
             }
             else if (Math.Abs(newLoc.y - CurLoc.y) == 2 && MovedCount == 0 &&
-                     PlayerScript.Board.EmptySpotOnBoard(new Vector2Int(CurLoc.x, CurLoc.y - validDirection)))
+                     Board.Instance.EmptySpotOnBoard(new Vector2Int(CurLoc.x, CurLoc.y - validDirection)))
             {
                 return 1;
             }
@@ -70,17 +71,17 @@ public class Pawn : ChessPiece
     {
         if (newLoc.y == CurLoc.y - validDirection && Math.Abs(newLoc.x - CurLoc.x) == 1)
         {
-            if (!PlayerScript.Board.EmptySpotOnBoard(newLoc) &&
-                !SameTeam(PlayerScript.Board.FilledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>()))
+            if (!Board.Instance.EmptySpotOnBoard(newLoc) &&
+                !SameTeam(Board.Instance.FilledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>()))
             {
                 return 0;
             }
 
-            if (PlayerScript.Board.EmptySpotOnBoard(newLoc) &&
-                !PlayerScript.Board.EmptySpotOnBoard(new Vector2Int(newLoc.x, CurLoc.y)))
+            if (Board.Instance.EmptySpotOnBoard(newLoc) &&
+                !Board.Instance.EmptySpotOnBoard(new Vector2Int(newLoc.x, CurLoc.y)))
             {
                 ChessPiece pieceAtNewLoc =
-                    PlayerScript.Board.FilledBoard[newLoc.x, CurLoc.y].GetComponent<ChessPiece>();
+                    Board.Instance.FilledBoard[newLoc.x, CurLoc.y].GetComponent<ChessPiece>();
 
                 if (pieceAtNewLoc.MovedCount == 1 && !SameTeam(pieceAtNewLoc) && pieceAtNewLoc is Pawn) return -2;
             }
@@ -93,7 +94,7 @@ public class Pawn : ChessPiece
     {
         if (loc.y == CurLoc.y - validDirection && Math.Abs(loc.x - CurLoc.x) == 1)
         {
-            if (!PlayerScript.Board.EmptySpotOnBoard(loc))
+            if (!Board.Instance.EmptySpotOnBoard(loc))
             {
                 return true;
             }
@@ -108,7 +109,9 @@ public class Pawn : ChessPiece
 
         for (int i = 0; i < PossibleMoves.Count; i++)
         {
+            Debug.Log("error is here");
             int moveValidation = SimpleValidateMove(CurLoc + PossibleMoves[i]);
+            Debug.Log("error has made it here");
             if (moveValidation == 1 || moveValidation == 0 || moveValidation == -2)
             {
                 currentPossibleMoves.Add(CurLoc + PossibleMoves[i]);

@@ -18,7 +18,7 @@ public class Rook : ChessPiece
     for (int i = 1; i <= Math.Max(Math.Abs(loc.y - CurLoc.y), Math.Abs(loc.x - CurLoc.x)) - 1; i++)
     {
       // Debug.Log(new Vector2Int(CurLoc.x + i * dX, CurLoc.y + i * dY));
-      if (!PlayerScript.Board.EmptySpotOnBoard(
+      if (!Board.Instance.EmptySpotOnBoard(
         new Vector2Int(CurLoc.x + i * dX, CurLoc.y + i * dY)))
       {
         return false;
@@ -37,10 +37,10 @@ public class Rook : ChessPiece
     for (int i = 1; i <= Math.Max(Math.Abs(newLoc.y - CurLoc.y), Math.Abs(newLoc.x - CurLoc.x)); i++)
     {
       // Debug.Log(new Vector2Int(CurLoc.x + i * dX, CurLoc.y + i * dY));
-      if (!PlayerScript.Board.EmptySpotOnBoard(
+      if (!Board.Instance.EmptySpotOnBoard(
         new Vector2Int(CurLoc.x + i * dX, CurLoc.y + i * dY)))
       {
-        if (i == Math.Max(Math.Abs(newLoc.y - CurLoc.y), Math.Abs(newLoc.x - CurLoc.x)) && !SameTeam(PlayerScript.Board.FilledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>())) return 0;
+        if (i == Math.Max(Math.Abs(newLoc.y - CurLoc.y), Math.Abs(newLoc.x - CurLoc.x)) && !SameTeam(Board.Instance.FilledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>())) return 0;
         else return -1;
       }
     }

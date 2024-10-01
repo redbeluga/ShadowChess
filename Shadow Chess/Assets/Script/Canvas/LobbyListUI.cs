@@ -36,7 +36,6 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
     {
         LobbyManager.Instance.OnLobbyListChanged += LobbyManager_OnLobbyListChanged;
         LobbyManager.Instance.OnQueueJoinLobby += LobbyManager_OnQueueJoinLobby;
-        LobbyManager.Instance.OnJoinLobby += LobbyManager_OnJoinedLobby;
         LobbyManager.Instance.OnLeaveLobby += LobbyManager_OnLeftLobby;
     }
 
@@ -45,14 +44,10 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
         Show();
     }
 
-    private void LobbyManager_OnJoinedLobby(object sender, LobbyManager.LobbyEventArgs e)
-    {
-        Hide();
-    }
-
     private void LobbyManager_OnQueueJoinLobby(object sender, EventArgs e)
     {
         LoadingAnimationUI.Instance.Show(false, true, "Joining lobby");
+        Hide();
     }
 
     private void LobbyManager_OnLobbyListChanged(object sender, LobbyManager.OnLobbyListChangedEventArgs e)
@@ -63,13 +58,7 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
 
     private void UpdateLobbyList(List<Lobby> lobbyList)
     {
-        // Debug.Log("Updating lobby list");
-        foreach (Transform child in container)
-        {
-            if (child == lobbySingleTemplate) continue;
-
-            DestroyImmediate(child.gameObject);
-        }
+        ClearList();
 
         foreach (Lobby lobby in lobbyList)
         {
@@ -85,24 +74,28 @@ public class LobbyListUI : MonoBehaviour, UI_Instance
         LobbyManager.Instance.RefreshLobbyList();
     }
 
-    private void QuickJoinButtonClick()
-    {
-        LobbyManager.Instance.QuickJoinLobby();
-    }
-
     private void JoinWithCodeButtonClick(string joinCode)
     {
         LobbyManager.Instance.JoinLobby(joinCode, false);
     }
 
-    private void CreateLobbyButtonClick()
+    public void CreateLobbyButtonClick()
     {
         LobbyCreateUI.Instance.Show(this);
         Hide();
     }
+    
+    private void ClearList()
+    {
+        foreach (Transform child in container)
+        {
+            Destroy(child.gameObject);
+        }
+    }
 
     private void Hide()
     {
+        ClearList();
         gameObject.SetActive(false);
     }
 

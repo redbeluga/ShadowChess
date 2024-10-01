@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using FishNet.Object;
 using UnityEngine;
@@ -6,6 +7,7 @@ public abstract class ChessPiece : NetworkBehaviour
 {
   private Player player;
   private List<Vector2Int> possibleMoves; 
+  private SpriteRenderer spriteRenderer;
   private Player playerScript;
   [SerializeField] private Vector2Int curLoc;
   private int movedCount;
@@ -16,13 +18,29 @@ public abstract class ChessPiece : NetworkBehaviour
     transform.position = mousePosition;
   }
 
+  private void Awake()
+  {
+    spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+    DisableSprite();
+  }
+
+  public void EnableSprite()
+  {
+    spriteRenderer.enabled = true;
+  }
+  
+  public void DisableSprite()
+  {
+    spriteRenderer.enabled = false;
+  }
+
   public virtual int SimpleValidateMove(Vector2Int newLoc)
   {
     if (!Board.LocInBounds(newLoc)) return -1;
 
-    if (!playerScript.Board.EmptySpotOnBoard(newLoc))
+    if (Board.Instance.EmptySpotOnBoard(newLoc))
     {
-      if (SameTeam(playerScript.Board.FilledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>()))
+      if (SameTeam(Board.Instance.FilledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>()))
       {
         return -1;
       }

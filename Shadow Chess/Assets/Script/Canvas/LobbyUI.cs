@@ -29,7 +29,7 @@ public class LobbyUI : MonoBehaviour, UI_Instance
     {
         Instance = this;
 
-        leaveLobbyButton.onClick.AddListener(() => { LobbyManager.Instance.LeaveLobby(); });
+        leaveLobbyButton.onClick.AddListener(() => { LobbyManager.Instance.LeaveLobby(false); });
 
         readyUpButton.onClick.AddListener(OnReadyClick);
         readyUpButtonText = readyUpButton.gameObject.GetComponentInChildren<TextMeshProUGUI>();
@@ -40,7 +40,7 @@ public class LobbyUI : MonoBehaviour, UI_Instance
 
     private void Start()
     {
-        LobbyManager.Instance.OnJoinLobby += JoinLobby_Event;
+        InstanceFinder.ClientManager.OnClientConnectionState += JoinLobby_Event;
         LobbyManager.Instance.OnJoinedLobbyUpdate += UpdateLobby_Event;
         LobbyManager.Instance.OnLeaveLobby += LobbyManager_OnLeftLobbyEvent;
 
@@ -64,7 +64,7 @@ public class LobbyUI : MonoBehaviour, UI_Instance
     {
         if(kickedPlayerEvent.PlayerId == LobbyManager.Instance.PlayerId)
         {
-            LobbyManager.Instance.LeaveLobby();
+            LobbyManager.Instance.LeaveLobby(false);
             ClearLobby();
             Hide();
         }
@@ -75,19 +75,28 @@ public class LobbyUI : MonoBehaviour, UI_Instance
         UpdateLobby(e.lobby);
     }
 
-    private void JoinLobby_Event(object sender, LobbyManager.LobbyEventArgs e)
+    private void JoinLobby_Event(ClientConnectionStateArgs args)
     {
-        UpdateLobby(e.lobby);
-        Show();
+        if(args.ConnectionState == LocalConnectionState.Started)
+        {
+            LobbyManager.Instance.SetPlayerJoined();
+            UpdateLobby(LobbyManager.Instance.CurrentLobby);
+            Show();
+        }
     }
 
     private void UpdateLobby(Lobby lobby)
     {
         ClearLobby();
         allReady = true;
+        // allReady = (lobby.Players.Count == lobby.MaxPlayers);
+        int playerCount = 0;
 
         foreach (Unity.Services.Lobbies.Models.Player player in lobby.Players)
         {
+            if (!bool.Parse(player.Data[LobbyManager.k_playerJoined].Value)) continue;
+
+            playerCount++;
             Transform playerSingleTransform = Instantiate(playerSingleTemplate, container);
             playerSingleTransform.gameObject.SetActive(true);
             LobbyPlayerSingleUI lobbyPlayerSingleUI = playerSingleTransform.GetComponent<LobbyPlayerSingleUI>();
@@ -105,7 +114,7 @@ public class LobbyUI : MonoBehaviour, UI_Instance
         }
 
         lobbyNameText.text = lobby.Name;
-        playerCountText.text = lobby.Players.Count + "/" + lobby.MaxPlayers;
+        playerCountText.text = playerCount + "/" + lobby.MaxPlayers;
         if (LobbyManager.Instance.IsLobbyHost())
         {
             readyUpButton.interactable = allReady;

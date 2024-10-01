@@ -34,11 +34,11 @@ public class Knight : ChessPiece
     {
       return -1;
     }
-    if (PlayerScript.Board.EmptySpotOnBoard(new Vector2Int(newLoc.x, newLoc.y)))
+    if (Board.Instance.EmptySpotOnBoard(new Vector2Int(newLoc.x, newLoc.y)))
     {
       return 1;
     }
-    if (!SameTeam(PlayerScript.Board.FilledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>()))
+    if (!SameTeam(Board.Instance.FilledBoard[newLoc.x, newLoc.y].GetComponent<ChessPiece>()))
     {
       return 0;
     }
