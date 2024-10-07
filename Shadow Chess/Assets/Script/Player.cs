@@ -45,8 +45,6 @@ public class Player : NetworkBehaviour
     {
         if (endEventArgs.LoadedScenes.Length > 0 && endEventArgs.LoadedScenes[0].name == "Chess" && IsOwner)
         {
-            GameObject board = GameObject.Find("Board");
-            
             LobbyManager.Instance.InGame = true;
             ServerAddPlayerToBoard(this);
         }
@@ -61,10 +59,6 @@ public class Player : NetworkBehaviour
     void Update()
     {
         mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        // if (Input.GetKeyDown(KeyCode.A))
-        // {
-        //   board.PrintControlledBoard();
-        // }
 
         if (Board.Instance != null && Input.GetMouseButtonDown(0) && !Board.Instance.GameOver) // 0 is the left mouse button
         {
@@ -77,10 +71,7 @@ public class Player : NetworkBehaviour
                 RaycastHit2D hit = Physics2D.Raycast(mousePosition, Vector2.zero);
                 if (hit.collider != null && chessPieces.Contains(hit.collider.gameObject.transform.parent.gameObject))
                 {
-                    holdingPiece = true;
-                    activeChessPieceScript =
-                        hit.collider.gameObject.transform.parent.gameObject.GetComponent<ChessPiece>();
-                    activeChessPieceScript.GetComponentInChildren<SpriteRenderer>().sortingOrder = 3;
+                    PickUpPiece(hit);
                 }
             }
         }
@@ -89,6 +80,15 @@ public class Player : NetworkBehaviour
         {
             activeChessPieceScript.FollowPointer(mousePosition);
         }
+    }
+
+    private void PickUpPiece(RaycastHit2D hit)
+    {
+        holdingPiece = true;
+        activeChessPieceScript =
+            hit.collider.gameObject.transform.parent.gameObject.GetComponent<ChessPiece>();
+        activeChessPieceScript.GetComponentInChildren<SpriteRenderer>().sortingOrder = 3;
+        
     }
 
     [ServerRpc(RequireOwnership = false)]
