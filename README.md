@@ -1,5 +1,5 @@
 # ShadowChess
  
-Fog of war chess
-Play with your friends
-Downloadable executables at https://squirrelfish.itch.io/
+Fog of war chess <br />
+Play with your friends <br />
+Downloadable executables at https://squirrelfish.itch.io/ <br />
