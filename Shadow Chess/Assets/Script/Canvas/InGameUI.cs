@@ -57,8 +57,10 @@ public class InGameUI : MonoBehaviour
         int row = (takenPieceIsWhite == Board.Instance.LocalIsWhite
             ? playerCapturedPiecesCount
             : opponentCapturedPiecesCount) / 7;
+        
+        Debug.Log(row);
 
-        displayPieceRect.anchoredPosition = new Vector2(column * (displayPieceRect.sizeDelta.x * 2 / 3), row);
+        displayPieceRect.anchoredPosition = new Vector2(column * (displayPieceRect.sizeDelta.x * 2 / 3), -row * displayPieceRect.sizeDelta.y);
         playerCapturedPiecesCount += takenPieceIsWhite == Board.Instance.LocalIsWhite ? 1 : 0;
         opponentCapturedPiecesCount += takenPieceIsWhite == Board.Instance.LocalIsWhite ? 0 : 1;
     }

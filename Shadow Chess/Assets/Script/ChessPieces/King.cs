@@ -75,13 +75,13 @@ public class King : ChessPiece
         ChessPiece rookPiece;
         Vector2Int rookNewLoc;
         if (kingNewLoc.x - CurLoc.x == 2 &&
-            Board.Instance.FilledBoard[kingNewLoc.x + 1, kingNewLoc.y].GetComponent<ChessPiece>() is Rook)
+            Board.Instance.FilledBoard[kingNewLoc.x + 1, kingNewLoc.y]?.GetComponent<ChessPiece>() is Rook)
         {
             rookPiece = Board.Instance.FilledBoard[kingNewLoc.x + 1, kingNewLoc.y].GetComponent<ChessPiece>();
             rookNewLoc = new Vector2Int(CurLoc.x + 1, CurLoc.y);
         }
         else if (kingNewLoc.x - CurLoc.x == -2 &&
-                 Board.Instance.FilledBoard[kingNewLoc.x - 2, kingNewLoc.y].GetComponent<ChessPiece>() is Rook)
+                 Board.Instance.FilledBoard[kingNewLoc.x - 2, kingNewLoc.y]?.GetComponent<ChessPiece>() is Rook)
         {
             rookPiece = Board.Instance.FilledBoard[kingNewLoc.x - 2, kingNewLoc.y].GetComponent<ChessPiece>();
             rookNewLoc = new Vector2Int(CurLoc.x - 1, CurLoc.y);
@@ -98,23 +98,6 @@ public class King : ChessPiece
         }
 
         if(shouldCastle) Board.Instance.CastleKing(this, rookPiece, kingNewLoc, rookNewLoc);
-        return true;
-    }
-
-    public bool validSpaceBetweenForCastle(ChessPiece rookPiece)
-    {
-        int minX = Mathf.Min(rookPiece.CurLoc.x, CurLoc.x);
-        int minY = Mathf.Min(rookPiece.CurLoc.y, CurLoc.y);
-        int maxX = Mathf.Max(rookPiece.CurLoc.x, CurLoc.x);
-        int maxY = Mathf.Max(rookPiece.CurLoc.y, CurLoc.y);
-        int dx = (maxX - minX) == 0 ? 0 : (int)Mathf.Sign(maxX - minX);
-        int dy = (maxY - minY) == 0 ? 0 : (int)Mathf.Sign(maxY - minY);
-        Debug.Log(minX + " " + minY + " " + maxX + " " + maxY);
-        for (int x = minX + dx, y = minY + dy; x < maxX || y < maxY; x += dx, y += dy)
-        {
-            if (!Board.Instance.EmptySpotOnBoard(new Vector2Int(x, y))) return false; // see if opp team has control
-        }
-
         return true;
     }
 
